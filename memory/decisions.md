@@ -17,3 +17,7 @@ Chưa có quyết định.
 ## 2026-10-05 — UI v2 (bỏ "mùi AI")
 - Quyết định: giao diện thực dụng kiểu HMI ô tô + bảng vận hành; không glow/gradient/pill/hero icon/câu quảng cáo; Inter có subset tiếng Việt; token màu sáng/tối một chỗ; trạng thái bình thường yên tĩnh, WARNING nền vàng, DANGER nền đỏ đặc. Đặc tả: docs/ui-design-spec.md.
 - Figma: file https://www.figma.com/design/wSNIVVu52YnG0VXp7JVUGJ chứa bản UI v1 (đã nối prototype) và một số bản chụp UI v2 chưa dọn; gói Starter đã hết hạn mức gọi công cụ MCP.
+
+## 2026-10-05 — Ngưỡng MAR
+- Quyết định: mar_threshold 0,60 -> 0,50. Lý do: thí nghiệm 4 (800 ảnh AI sinh): ngưỡng 0,60 chỉ Recall 0,675 (tính cả mất mặt 0,618); 0,50 cho F1 0,906, báo giả 2%. Không chọn 0,36 (tối ưu F1) vì dữ liệu âm quá dễ.
+- Trạng thái: áp dụng; cần kiểm chứng trên người thật (nói chuyện, cười).

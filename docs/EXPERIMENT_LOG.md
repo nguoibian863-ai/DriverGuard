@@ -96,7 +96,7 @@ FPS camera khác nhau giữa hai lần chạy do tự động phơi sáng của 
 | `ear_threshold` | 0,20 | Ngưỡng dự phòng khi chưa hiệu chuẩn |
 | Ngưỡng EAR sau hiệu chuẩn | 0,7 × EAR mở mắt, kẹp [0,10; 0,25] | Cá nhân hóa theo tài xế |
 | `eyes_closed_s` | 1,8 | Nhắm mắt liên tục → `DROWSINESS_ACUTE` |
-| `mar_threshold` | 0,60 | MAR cao hơn → miệng mở rộng |
+| `mar_threshold` | **0,50** (trước 0,60; đổi theo mục 10) | MAR cao hơn → miệng mở rộng |
 | `yawn_s` | 2,0 | Miệng mở liên tục → ngáp |
 | `yaw_threshold` / `pitch_threshold` | 30° / 20° | So với tư thế chuẩn |
 | `head_s` | 2,0 | Quay/cúi đầu liên tục → sự kiện |
@@ -253,3 +253,45 @@ yolo26n: c1 0,09 · c2 0,23 · c3 0,19 · c4 0,08 (gần như không dùng đư�
   và mỗi ảnh là một người nên không có hiệu chuẩn theo người. Lập luận cho ngưỡng cá nhân hóa vẫn chỉ dựa trên một ảnh mẫu.
 - Mắt nhắm mà EAR ≥ 0,20 (3%): chưa phân tích nguyên nhân (nhắm hờ, mi mắt vẽ, góc nhìn); cần xem thủ công mẫu lỗi.
 - Đo trên ảnh tĩnh, chưa đo độ trễ phát hiện (cần video + FSM) hay tỉ lệ báo giả khi chớp mắt bình thường.
+
+
+## 10. Thí nghiệm 4: MAR phân biệt ngáp / không ngáp (ảnh khuôn mặt do AI sinh)
+
+### 10.1 Dữ liệu và quy trình
+- Nguồn: `c3rl/yawning-people` (HuggingFace, giấy phép `mit`), 5.093 ảnh "yawning" + 4.907 ảnh "notyawning", PNG 512×512. README trống.
+  `dataset.csv` có cột `prompt`, `yawn_label`, `sleepy_label`: ảnh **do AI sinh từ mô tả văn bản**, nhãn lấy theo lời nhắc sinh ảnh, **không kiểm tra thủ công**
+  (xem ảnh mẫu: đa số mặt ngáp há rộng; có ảnh giống hát/la hét; ảnh "không ngáp" gần như toàn mặt trung tính khép miệng).
+- Mẫu: 400 ảnh mỗi lớp, ngẫu nhiên `random.seed(0)` = 800 ảnh.
+- Quy trình: MediaPipe FaceLandmarker (tạo mới mỗi ảnh) -> MAR (`ai/features/mar.py`); dự đoán "ngáp" khi MAR > ngưỡng.
+- Mã: `scripts/eval_yawn_state.py`; số liệu thô: `docs/experiments/yawn_state_synthetic.json`.
+- Ghi chú đo: các chỉ số P/R/F1 chỉ tính trên ảnh mà MediaPipe thấy mặt. Recall tính cả ảnh mất mặt = TP / 400.
+
+### 10.2 Kết quả
+| Chỉ số | Giá trị |
+|---|---|
+| MediaPipe thấy mặt | ngáp 91,5% (366/400), không ngáp 99,3% (397/400) |
+| AUC (MAR ngáp > MAR không ngáp) | **0,986** |
+| MAR ngáp: phân vị 5 / 25 / 50 / 75 / 95 | 0,359 / 0,564 / 0,667 / 0,776 / 0,894 |
+| MAR không ngáp: phân vị 50 / 75 / 95 / 99 | 0,009 / 0,024 / 0,299 / 0,567 |
+
+| Ngưỡng MAR | Precision | Recall (có mặt) | F1 | Báo giả (FPR) | Recall tính cả mất mặt |
+|---|---|---|---|---|---|
+| 0,30 | 0,946 | 0,956 | 0,951 | 0,050 | 0,875 |
+| 0,40 | 0,969 | 0,932 | 0,950 | 0,028 | 0,853 |
+| **0,50** | 0,975 | 0,847 | 0,906 | 0,020 | 0,775 |
+| 0,60 (cũ) | 0,992 | 0,675 | 0,803 | 0,005 | 0,618 |
+| 0,70 | 1,000 | 0,418 | 0,590 | 0,000 | 0,383 |
+| Tốt nhất theo F1 (0,36) | 0,964 | 0,948 | 0,956 | 0,033 | 0,868 |
+
+### 10.3 Kết luận và thay đổi
+- MAR phân tách ngáp rõ (AUC 0,986), nhưng **ngưỡng cũ 0,60 quá cao**: bỏ sót 1/3 số ca ngáp (Recall 0,675; tính cả mất mặt chỉ 0,618).
+- **Đổi mặc định `mar_threshold` 0,60 -> 0,50** (F1 0,906, báo giả 2%, Recall 0,847). Không chọn mức tối ưu 0,36 vì dữ liệu âm quá "dễ"
+  (toàn mặt khép miệng): khi nói chuyện hoặc cười, MAR thực tế lên 0,2–0,5 nên ngưỡng thấp sẽ báo giả nhiều hơn số đo ở đây.
+  Bộ lọc thời gian (miệng mở liên tục ≥ 2 giây) giảm báo giả do nói chuyện/cười thoáng qua nhưng chưa được đo.
+- Ngoài ra 8,5% ảnh ngáp bị mất mặt (miệng há rộng, che khuất) -> cần xử lý ở tầng pipeline (đã có giữ mặt cuối 2 giây cho ROI điện thoại; ngáp chưa có).
+
+### 10.4 Hạn chế
+- Ảnh do AI sinh, nhãn theo lời nhắc, không kiểm tra thủ công; một số ảnh "ngáp" có thể là hát/la hét.
+- Không có ảnh nói chuyện/cười/ăn/uống làm âm tính khó; FPR ở bảng là cận dưới (lạc quan).
+- Ảnh tĩnh, chưa đo thời lượng miệng mở trong video (cần YawDD thật hoặc quay người thật).
+- Ngưỡng 0,50 là thỏa hiệp chưa kiểm chứng trên người thật.
