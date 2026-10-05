@@ -1,0 +1,166 @@
+# Nhật ký thí nghiệm và tham số (để làm báo cáo)
+
+Ghi ngày 2026-10-05. Số liệu thô: `docs/experiments/phone_detection_coco.csv`.
+Mọi số trong tài liệu này lấy từ lần chạy thật; mục nào chưa đo thì ghi rõ "chưa đo".
+
+## 1. Môi trường
+
+| Mục | Giá trị |
+|---|---|
+| Hệ điều hành | Windows 11 Pro 10.0.26200 |
+| GPU | NVIDIA GeForce RTX 3050 Laptop, 4 GB VRAM, driver 610.88 (CUDA UMD 13.3) |
+| Python | 3.11.9 (venv `.venv`) |
+| PyTorch | 2.11.0+cu128 (CUDA 12.8), torchvision 0.26.0+cu128 |
+| Ultralytics | 8.4.173 |
+| MediaPipe | 1.0.1 (Tasks API, `face_landmarker.task` float16) |
+| OpenCV | 5.0.0 · NumPy 2.4.6 · ONNX Runtime 1.30.0 |
+| Backend | FastAPI 0.142.2, Pydantic 2.13.5, SQLite (stdlib) |
+| Frontend | Next.js 16.3.8, React 19.2.8, Tailwind 4, TypeScript |
+| Camera | webcam của máy, 640×480, DirectShow (`cv2.CAP_DSHOW`) |
+| Công cụ điều phối | Claude (điều phối, kiểm tra), Codex CLI 0.160.0, Antigravity `agy` 1.2.16 |
+
+## 2. Thí nghiệm: chọn model YOLO phát hiện điện thoại
+
+### 2.1 Mục tiêu
+Chọn model và cấu hình YOLO để phát hiện lớp `cell phone` (COCO id 67) cho sự kiện `PHONE_USAGE`.
+
+### 2.2 Dữ liệu
+- Nguồn: bộ `detection-datasets/coco` trên HuggingFace, tách `val`, tương đương COCO val2017 (4.952 ảnh).
+  Tải file `val/0.parquet` và `val/1.parquet` (khoảng 807 MB) qua API parquet của HuggingFace.
+  Không dùng `images.cocodataset.org` vì chứng chỉ SSL của máy chủ đó sai tên miền.
+- Lớp điện thoại: id 67 (chỉ số 0–79). Định dạng hộp: `xyxy` (đã kiểm: 0 hộp có x2≤x1 hoặc y2≤y1).
+- Tập dương: **214 ảnh có điện thoại, 262 hộp**.
+- Tập âm: **400 ảnh không có điện thoại**, lấy ngẫu nhiên từ 4.738 ảnh, `random.seed(0)`.
+- "Hộp lớn": hộp chiếm ≥ 2% diện tích ảnh (68 hộp), gần với điện thoại cầm trước camera trong xe.
+- Hạn chế: ảnh đời thường, **không phải trong xe**; điện thoại thường nhỏ nên Recall thấp hơn thực tế.
+
+### 2.3 Quy trình đo
+- Suy luận: `model.predict(img, classes=[67], conf=<conf>, device=0, imgsz=<imgsz>, verbose=False)`.
+- Khớp dự đoán – nhãn: IoU ≥ 0,5, tham lam theo độ tin cậy giảm dần; mỗi dự đoán khớp tối đa một nhãn.
+- Chỉ số: Precision = TP/(TP+FP) trên tập dương; Recall = TP/(TP+FN) trên tập dương;
+  F1; "báo giả/ảnh" = số hộp dự đoán trên 400 ảnh âm chia 400.
+- Độ trễ: **trung vị** thời gian `predict` mỗi ảnh (ms), không tính giải mã ảnh. Không khởi động nóng (warm-up) riêng.
+- VRAM đỉnh: `torch.cuda.max_memory_allocated()` sau khi reset cho mỗi cấu hình.
+- Mã: `scripts/eval_phone_coco.py` (vòng lặp cuối được thay đổi giữa các lần chạy, xem bảng ở mục 2.4).
+
+### 2.4 Kết quả đầy đủ (mọi lần chạy)
+
+| # | Model | imgsz | conf | Precision | Recall | F1 | Recall hộp lớn | FP âm (400 ảnh) | ms/ảnh | VRAM (MiB) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | yolo11n | 320 | 0,35 | 0,81 | 0,20 | 0,32 | 0,51 | 1 | 20,2 | – |
+| 2 | yolo26n | 320 | 0,35 | 0,89 | 0,19 | 0,31 | 0,50 | 1 | 21,4 | – |
+| 3 | yolo11n | 640 | 0,35 | 0,84 | 0,33 | 0,48 | 0,65 | 1 | 20,8 | – |
+| 4 | yolo26n | 640 | 0,35 | 0,89 | 0,30 | 0,45 | 0,63 | 0 | 21,4 | – |
+| 5 | yolo11n | 640 | 0,20 | 0,73 | 0,40 | 0,52 | 0,72 | 3 | 20,0 | – |
+| 6 | yolo26n | 640 | 0,20 | 0,79 | 0,36 | 0,50 | 0,71 | 2 | 21,2 | – |
+| 7 | yolo11n | 960 | 0,35 | 0,79 | 0,38 | 0,51 | 0,60 | 0 | 21,8 | – |
+| 8 | yolo26n | 960 | 0,35 | 0,88 | 0,37 | 0,52 | 0,66 | 1 | 23,6 | – |
+| 9 | yolo11n | 960 | 0,20 | 0,71 | 0,47 | 0,56 | 0,71 | 1 | 21,7 | – |
+| 10 | yolo26n | 960 | 0,20 | 0,81 | 0,47 | 0,60 | 0,71 | 2 | 23,8 | – |
+| 11 | yolo26n | 640 | 0,25 | 0,84 | 0,34 | 0,48 | 0,68 | 2 | 12,2 | 65 |
+| 12 | yolo26n | 960 | 0,25 | 0,86 | 0,43 | 0,57 | 0,71 | 2 | 14,9 | 95 |
+| 13 | yolo26s | 640 | 0,25 | 0,78 | 0,54 | 0,64 | 0,81 | 2 | 21,1 | 111 |
+| 14 | yolo26m | 640 | 0,25 | 0,80 | 0,61 | 0,70 | 0,84 | 1 | 24,4 | 229 |
+| 15 | yolo26l | 640 | 0,25 | 0,83 | 0,65 | 0,73 | 0,81 | 3 | 35,4 | 337 |
+| 16 | **yolo26x** | 640 | 0,25 | 0,84 | 0,69 | 0,76 | 0,85 | 3 | 53,8 | 394 |
+| 17 | yolo26x | 960 | 0,25 | 0,81 | 0,72 | 0,76 | 0,87 | 4 | 114,7 | 563 |
+
+Số tham số: yolo26n 2,6M · s 10,0M · m 21,9M · l 26,3M · x 59,0M. Trọng số: bản COCO tiền huấn luyện, chưa fine-tune.
+
+**Lưu ý về độ trễ (quan trọng khi viết báo cáo):** độ trễ yolo26n đo được 21,4 ms (dòng 2, 4) và 12,2 ms (dòng 11)
+tuy cùng imgsz 640. GPU laptop đổi xung nhịp theo tải và nhiệt nên độ trễ dao động giữa các lần chạy;
+chỉ so sánh độ trễ giữa các dòng trong **cùng một lần chạy** (dòng 1–4 / 5–10 / 11–12 và 16–17 / 13–15).
+Chưa lặp nhiều lần để có khoảng tin cậy.
+
+### 2.5 Kết quả trong worker thật (camera + YOLO cùng chạy, 25 giây, không có người trước camera)
+
+| Model | FPS camera | FPS mặt | FPS điện thoại | Độ trễ điện thoại |
+|---|---|---|---|---|
+| yolo26x | 30 | 30 | 5 | 63 ms |
+| yolo26n | 15 | 15 | 5 | 35 ms |
+
+FPS camera khác nhau giữa hai lần chạy do tự động phơi sáng của webcam (thiếu sáng thì giảm FPS), không phải do model.
+Đo riêng `PhoneDetector.detect` trên khung đen 640×480: yolo26n 19,6 ms; yolo26x 55,6 ms.
+
+### 2.6 Quyết định
+- Mặc định: **`yolo26x.pt`, `imgsz=640`, `conf=0,25`** (biến môi trường `DRIVERGUARD_YOLO_MODEL` để đổi).
+- Lý do: F1 0,76 và Recall hộp lớn 0,85 cao nhất ở imgsz 640; imgsz 960 không cải thiện F1 mà chậm gấp đôi.
+- Thiết bị yếu: dùng yolo26m (F1 0,70, ~24 ms) hoặc yolo26s; cần đo lại trên thiết bị.
+- Cấu hình ban đầu (yolo11n, 320, 0,35) bị loại vì Recall chỉ 0,20.
+- Chưa làm: thử với điện thoại thật trong xe; fine-tune trên State Farm; đo lặp nhiều lần để có khoảng tin cậy.
+
+## 3. Tham số hệ thống (`ai/config/thresholds.yaml` và hằng số trong code)
+
+| Tham số | Giá trị | Ý nghĩa |
+|---|---|---|
+| `ear_threshold` | 0,20 | Ngưỡng dự phòng khi chưa hiệu chuẩn |
+| Ngưỡng EAR sau hiệu chuẩn | 0,7 × EAR mở mắt, kẹp [0,10; 0,25] | Cá nhân hóa theo tài xế |
+| `eyes_closed_s` | 1,8 | Nhắm mắt liên tục → `DROWSINESS_ACUTE` |
+| `mar_threshold` | 0,60 | MAR cao hơn → miệng mở rộng |
+| `yawn_s` | 2,0 | Miệng mở liên tục → ngáp |
+| `yaw_threshold` / `pitch_threshold` | 30° / 20° | So với tư thế chuẩn |
+| `head_s` | 2,0 | Quay/cúi đầu liên tục → sự kiện |
+| `phone_s` | 1,5 | Điện thoại ở vùng sử dụng liên tục → `PHONE_USAGE` |
+| `absence_s` | 3,0 | Không thấy mặt → `DRIVER_ABSENCE` |
+| `cooldown_s` | 3,0 | Hạ nhiệt FSM, chống báo lặp |
+| `calibration_s` | 4,0 | Cửa sổ tính trung vị yaw/pitch/EAR |
+| `perclos_window_s` | 60 | Cửa sổ PERCLOS; chỉ tin khi đã quan sát ≥ 30 s |
+| `yawn_window_s` | 300 | Cửa sổ đếm số lần ngáp |
+| `pitch_sign` | 1,0 | Đổi thành −1,0 nếu cúi đầu cho pitch âm (**chưa kiểm chứng**) |
+| Rủi ro mãn tính | min(70, PERCLOS×200 + số ngáp×10) | Sự kiện `CHRONIC_FATIGUE` khi ≥ 50, tối đa 1 lần/60 s |
+| Rủi ro tức thời (ACTIVE) | nhắm mắt 90 · điện thoại 80 · quay đầu 65 · cúi đầu 65 · mất mặt 60 · ngáp 45 | Điểm nền cho từng sự kiện |
+| Suy hao | λ = 0,3 (hàm mũ), Acute Bypass khi nhắm mắt ≥ 2,0 s → DANGER, điểm ≥ 70 | `RiskEngine` |
+| Mức rủi ro | < 40 NORMAL · < 70 WARNING · ≥ 70 DANGER | `level_from_score` |
+| Vùng điện thoại "đang dùng" | ngang ±1,5 rộng mặt; dọc từ −0,5 đến +3 cao mặt | `is_usage_region` |
+| Tần suất | MediaPipe theo FPS camera; YOLO ~5 FPS (luồng riêng); telemetry ≤ 15 Hz | Worker |
+
+Tại sao ngưỡng EAR cá nhân hóa: ảnh chân dung mẫu của MediaPipe cho EAR mở mắt = 0,207, sát ngưỡng cố định 0,20,
+nên ngưỡng cố định sẽ báo "buồn ngủ" giả với người mắt nhỏ.
+
+### Điểm landmark MediaPipe dùng
+- Mắt phải `[33,160,158,133,153,144]`, mắt trái `[362,385,387,263,373,380]` (p1..p6).
+- Miệng `[61,81,13,311,291,402,14,178]` (0=khóe trái, 1–3 môi trên, 4=khóe phải, 5–7 môi dưới).
+- Góc đầu: tách Euler từ ma trận biến đổi 4×4 (`atan2` theo yaw/pitch/roll).
+
+## 4. Kết quả kiểm chứng khác
+
+| Phép đo | Kết quả |
+|---|---|
+| Ảnh chân dung mẫu (MediaPipe `portrait.jpg`, 820×1024) | EAR 0,207 · MAR 0,178 · yaw 1,76° · pitch 4,17° · roll 0,59° |
+| Camera thật 25 s, không có người | 0% khung có mặt (đúng), sự kiện `DRIVER_ABSENCE`, không lỗi, thoát sạch sau lệnh stop |
+| Mô phỏng 22 s | 216 bản tin telemetry, 215 khung JPEG, sự kiện nhắm mắt, risk đỉnh 90 |
+| Test tự động | 41 test lõi AI + 5 test backend = **46 pass** (tại commit 92f4438) |
+| Build dashboard | `npm run build` thành công |
+| Tích hợp đầu–cuối | Backend mô phỏng + dashboard trên Chrome: kết nối WebSocket, video, risk meter, đồ thị, bảng sự kiện đều hoạt động |
+
+## 5. Lỗi phát hiện khi kiểm tra và cách sửa (cho mục "Bài học")
+
+1. FSM không kích hoạt đúng biên do sai số số thực (2,8 − 1,0 = 1,7999…) → thêm dung sai 1e-9.
+2. PERCLOS báo mệt mỏi mãn tính sau vài giây do cửa sổ quá ít dữ liệu → chỉ tính khi quan sát ≥ nửa cửa sổ.
+3. Ngưỡng EAR cố định gây báo giả với mắt nhỏ → ngưỡng cá nhân hóa theo hiệu chuẩn.
+4. MediaPipe (C++) sập với đường dẫn có dấu tiếng Việt → nạp mô hình từ bytes.
+5. Worker không thoát sau lệnh stop do hàng đợi còn dữ liệu → `cancel_join_thread()`.
+6. Backend: `camera_connected` phụ thuộc việc thấy mặt; sự kiện không gắn phiên; `/config` thiếu ngưỡng; không tự tìm package `ai`.
+7. Cấu hình YOLO ban đầu (imgsz 320) bỏ sót nhiều → 640 và model lớn hơn.
+
+## 6. Việc chưa đo (cần ghi rõ trong báo cáo)
+
+- Nhận diện mặt/EAR/MAR/góc đầu **với người thật trước camera**.
+- Dấu pitch; ngưỡng ngáp (MAR 0,60); độ chính xác ROI điện thoại với điện thoại thật.
+- F1, độ trễ phát hiện, báo giả/phút trên NTHU-DDD, YawDD, State Farm (Phase 8).
+- Độ trễ có khoảng tin cậy (lặp ≥ 5 lần); đo trên thiết bị biên (Jetson, mini PC); ONNX/TensorRT.
+
+## 7. Cách chạy lại
+
+```powershell
+# Test
+.\.venv\Scripts\python.exe -m pytest ai -q
+cd apps\backend; ..\..\.venv\Scripts\python.exe -m pytest tests -q
+# Hệ thống
+.\scripts\run_backend.ps1 [-Simulate]
+.\scripts\run_web.ps1
+# Chọn model điện thoại
+$env:DRIVERGUARD_YOLO_MODEL = "yolo26m.pt"
+```
+Đánh giá model: tải 2 file parquet về thư mục hiện tại rồi chạy `python scripts/eval_phone_coco.py`
+(cần `pip install pyarrow pillow`); sửa vòng lặp cuối của script để chọn model/imgsz/conf cần so.
