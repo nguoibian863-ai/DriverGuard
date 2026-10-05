@@ -72,22 +72,6 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
   // Play synthesized Web Audio alerts
   useAlertSound(stage, true);
 
-  // Border glow class based on risk and connection state
-  let glowClass = "glow-border-normal";
-  if (!connected) {
-    glowClass = "glow-border-disconnected";
-  } else if (hasCameraError) {
-    glowClass = "glow-border-warning";
-  } else if (!telemetry) {
-    glowClass = "glow-border-disconnected";
-  } else if (currentLevel === "DANGER") {
-    glowClass = "glow-border-danger";
-  } else if (currentLevel === "WARNING") {
-    glowClass = "glow-border-warning";
-  } else {
-    glowClass = "glow-border-normal";
-  }
-
   const handleMute = async () => {
     if (muting) return;
     setMuting(true);
@@ -118,167 +102,108 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
   // Calibration overlay is mounted only when connected, not calibrated, and face is detected
   const showCalibration = connected && !isCalibrated && (telemetry?.face_detected ?? false);
 
+  // Background and color classes based on level and connection
+  const isDisconnected = !connected;
+  const isDanger = connected && currentLevel === "DANGER";
+  const isWarning = connected && currentLevel === "WARNING";
+  const isEscalated = isDanger && stage === "danger_escalated";
+
+  let containerBg = "bg-[var(--bg)] text-[var(--text)]";
+  if (isDisconnected) {
+    containerBg = "bg-[var(--bg)] text-[var(--text)] border-t-[4px] border-[var(--border)]";
+  } else if (isDanger) {
+    containerBg = `bg-[var(--danger-solid)] text-white ${isEscalated ? "danger-escalated-bg" : ""}`;
+  } else if (isWarning) {
+    containerBg = "bg-[var(--warn-solid)] text-[#1a1a18]";
+  }
+
+  // Button styles based on state
+  let muteButtonClass = "bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--bg)]";
+  let recalibrateButtonClass = "bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--bg)]";
+  let linkClass = "text-[var(--text-muted)] hover:text-[var(--text)]";
+  let topInfoClass = "text-[var(--text-muted)]";
+
+  if (isDanger) {
+    muteButtonClass = "bg-transparent text-white border-2 border-white hover:bg-white/10 active:bg-white/20";
+    recalibrateButtonClass = "bg-transparent text-white border border-white/80 hover:bg-white/10 active:bg-white/20";
+    linkClass = "text-white/80 hover:text-white";
+    topInfoClass = "text-white/80";
+  } else if (isWarning) {
+    muteButtonClass = "bg-transparent text-[#1a1a18] border-2 border-[#1a1a18] hover:bg-black/5 active:bg-black/10";
+    recalibrateButtonClass = "bg-transparent text-[#1a1a18] border border-[#1a1a18]/80 hover:bg-black/5 active:bg-black/10";
+    linkClass = "text-[#1a1a18]/80 hover:text-[#1a1a18]";
+    topInfoClass = "text-[#1a1a18]/80";
+  }
+
   return (
     <main
-      className={`min-h-dvh flex flex-col justify-between p-4 sm:p-8 bg-zinc-950 text-zinc-100 select-none relative transition-all duration-300 ${glowClass}`}
+      className={`min-h-dvh flex flex-col justify-between p-6 select-none relative transition-colors duration-150 ${containerBg}`}
     >
       {/* Calibration Overlay */}
-      {showCalibration && <CalibrationRing />}
+      {showCalibration && (
+        <CalibrationRing faceDetected={telemetry?.face_detected ?? false} />
+      )}
 
-      {/* Top Bar */}
-      <header className="flex items-center justify-between w-full max-w-5xl mx-auto z-10">
-        {/* Connection status chip */}
-        <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border ${
-            connected
-              ? "bg-zinc-900/90 border-zinc-800 text-zinc-300"
-              : "bg-zinc-900/90 border-zinc-700 text-zinc-400"
-          }`}
-        >
-          <span
-            className={`w-2.5 h-2.5 rounded-full ${
-              connected ? "bg-emerald-400" : "bg-zinc-500 animate-pulse"
-            }`}
-            aria-hidden="true"
-          />
-          <span>{connected ? "Đã kết nối" : "Mất kết nối — đang thử lại…"}</span>
+      {/* Top Header: Mute status & small risk score in corner */}
+      <header className="flex items-center justify-between w-full max-w-4xl mx-auto">
+        <div className={`text-[14px] font-medium ${topInfoClass}`}>
+          {isDisconnected ? "" : isMuted ? "Đã tắt tiếng" : ""}
         </div>
-
-        {/* Risk score & Mute status */}
-        <div className="flex items-center gap-2">
-          {isMuted && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs sm:text-sm font-semibold">
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-              </svg>
-              <span>Đã tắt tiếng</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs sm:text-sm font-medium text-zinc-400">
-            <span>Rủi ro:</span>
-            <span className="font-bold text-white">
-              {telemetry ? Math.round(telemetry.risk_score) : "--"}
-            </span>
-          </div>
+        <div className={`text-[14px] font-medium tabular-nums ${topInfoClass}`}>
+          Rủi ro: {telemetry ? Math.round(telemetry.risk_score) : "--"}
         </div>
       </header>
 
       {/* Main Status Display */}
       <section
-        role={currentLevel === "DANGER" ? "alert" : "status"}
-        aria-live={currentLevel === "DANGER" ? "assertive" : "polite"}
-        className="flex flex-col items-center justify-center text-center my-auto py-8 px-4 max-w-4xl mx-auto w-full z-10"
+        role={isDanger ? "alert" : "status"}
+        aria-live={isDanger ? "assertive" : "polite"}
+        className="flex flex-col items-center justify-center text-center my-auto py-8 px-4 max-w-4xl mx-auto w-full"
       >
-        {!connected ? (
-          <div className="flex flex-col items-center">
-            <div
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 text-zinc-500"
-              aria-hidden="true"
-            >
-              <svg
-                className="w-10 h-10 sm:w-12 sm:h-12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="1" y1="1" x2="23" y2="23" />
-                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
-                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
-                <path d="M10.71 5.05A16 16 0 0 1 22.58 9" />
-                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
-                <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-                <line x1="12" y1="20" x2="12.01" y2="20" />
-              </svg>
-            </div>
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-zinc-400 tracking-tight">
-              Mất kết nối — đang thử lại…
-            </h2>
-            <p className="text-base sm:text-xl text-zinc-500 mt-4 max-w-md">
-              Hệ thống đang tự động kết nối lại máy chủ AI...
-            </p>
-          </div>
+        {isDisconnected ? (
+          <h2 className="text-[20px] font-semibold text-[var(--text)] tracking-tight">
+            Mất kết nối. Đang thử lại…
+          </h2>
         ) : hasCameraError ? (
           <div className="flex flex-col items-center">
-            <div
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6 text-amber-400"
-              aria-hidden="true"
-            >
-              <svg
-                className="w-10 h-10 sm:w-12 sm:h-12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m1 1 22 22" />
-                <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56" />
-              </svg>
-            </div>
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-amber-400 tracking-tight">
+            <h2 className="text-[28px] font-semibold text-[var(--warn)] tracking-tight">
               Không mở được camera
             </h2>
-            <p className="text-base sm:text-xl text-zinc-400 mt-4 max-w-md">
+            <p className="text-[14px] text-[var(--text-muted)] mt-2">
               Vui lòng kiểm tra cáp kết nối hoặc quyền truy cập camera.
             </p>
           </div>
         ) : !telemetry ? (
+          <h2 className="text-[20px] font-medium text-[var(--text-muted)] tracking-tight">
+            Đang chờ dữ liệu từ AI worker…
+          </h2>
+        ) : isDanger ? (
           <div className="flex flex-col items-center">
-            <div
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-zinc-800 border-t-zinc-400 animate-spin mb-6"
-              aria-hidden="true"
-            />
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-zinc-400 tracking-tight">
-              Đang chờ dữ liệu từ AI worker…
-            </h2>
-            <p className="text-base sm:text-xl text-zinc-500 mt-4 max-w-md">
-              Đang khởi tạo mô hình phân tích thời gian thực.
-            </p>
-          </div>
-        ) : currentLevel === "DANGER" ? (
-          <div className="flex flex-col items-center">
-            <div
-              className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-red-500/20 border-2 border-red-500 mb-6 text-red-500 shadow-lg shadow-red-500/30"
-              aria-hidden="true"
-            >
+            <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap sm:flex-nowrap">
               <svg
-                className="w-12 h-12 sm:w-14 sm:h-14"
+                className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 text-white"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.5"
+                strokeWidth="4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                aria-hidden="true"
               >
-                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
+              <h2 className="text-[56px] sm:text-[72px] md:text-[96px] leading-none font-semibold text-white tracking-tight">
+                NGUY HIỂM
+              </h2>
             </div>
-            <h2 className="text-6xl sm:text-8xl md:text-9xl font-black text-red-500 tracking-tight">
-              NGUY HIỂM
-            </h2>
             {reasons.length > 0 && (
               <div className="mt-6 flex flex-col items-center gap-2">
                 {reasons.map((reason, idx) => (
                   <span
                     key={idx}
-                    className="text-2xl sm:text-4xl md:text-5xl font-bold text-red-200 tracking-normal px-4 py-1.5 rounded-xl bg-red-950/60 border border-red-800/60"
+                    className="text-[20px] sm:text-[28px] font-medium text-white"
                   >
                     {reason}
                   </span>
@@ -286,35 +211,17 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
               </div>
             )}
           </div>
-        ) : currentLevel === "WARNING" ? (
+        ) : isWarning ? (
           <div className="flex flex-col items-center">
-            <div
-              className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-amber-500/20 border-2 border-amber-500 mb-6 text-amber-400 shadow-lg shadow-amber-500/30"
-              aria-hidden="true"
-            >
-              <svg
-                className="w-12 h-12 sm:w-14 sm:h-14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <h2 className="text-6xl sm:text-8xl md:text-9xl font-black text-amber-400 tracking-tight">
-              Chú ý
+            <h2 className="text-[56px] sm:text-[72px] md:text-[96px] leading-none font-semibold text-[#1a1a18] tracking-tight">
+              CHÚ Ý
             </h2>
             {reasons.length > 0 && (
               <div className="mt-6 flex flex-col items-center gap-2">
                 {reasons.map((reason, idx) => (
                   <span
                     key={idx}
-                    className="text-2xl sm:text-4xl md:text-5xl font-bold text-amber-200 tracking-normal px-4 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800/60"
+                    className="text-[20px] sm:text-[28px] font-medium text-[#1a1a18]"
                   >
                     {reason}
                   </span>
@@ -324,48 +231,34 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <div
-              className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-500/20 border-2 border-emerald-500 mb-6 text-emerald-400 shadow-lg shadow-emerald-500/30"
-              aria-hidden="true"
-            >
-              <svg
-                className="w-12 h-12 sm:w-14 sm:h-14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            <div className="flex items-center justify-center gap-3">
+              <span
+                className="w-[12px] h-[12px] bg-[var(--ok)] shrink-0 rounded-[2px]"
+                aria-hidden="true"
+              />
+              <span className="text-[20px] font-medium text-[var(--text-muted)]">
+                Đang theo dõi
+              </span>
             </div>
-            <h2 className="text-5xl sm:text-7xl md:text-8xl font-black text-emerald-400 tracking-tight">
-              Đang theo dõi
-            </h2>
-            {reasons.length > 0 ? (
-              <div className="mt-6 flex flex-col items-center gap-2">
+            {reasons.length > 0 && (
+              <div className="mt-4 flex flex-col items-center gap-1.5">
                 {reasons.map((reason, idx) => (
                   <span
                     key={idx}
-                    className="text-2xl sm:text-3xl font-semibold text-zinc-300"
+                    className="text-[16px] font-medium text-[var(--text-muted)]"
                   >
                     {reason}
                   </span>
                 ))}
               </div>
-            ) : (
-              <p className="text-lg sm:text-2xl text-zinc-400 mt-4 font-medium">
-                Tư thế và tầm nhìn an toàn
-              </p>
             )}
           </div>
         )}
       </section>
 
       {/* Bottom Controls */}
-      <footer className="flex flex-col items-center gap-4 w-full max-w-xl mx-auto z-10 pb-2">
-        {/* Large Mute Button (min-h-16) */}
+      <footer className="flex flex-col items-center gap-3 w-full max-w-md mx-auto pb-2">
+        {/* Large Mute Button (min-h-16, h-16, rounded 8px) */}
         <button
           type="button"
           onClick={handleMute}
@@ -375,65 +268,27 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
               ? "Cảnh báo âm thanh đang được tắt tiếng trong 15 giây"
               : "Tắt tiếng cảnh báo trong 15 giây"
           }
-          className={`w-full min-h-16 h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-zinc-400 disabled:opacity-50 disabled:cursor-not-allowed ${
-            isMuted
-              ? "bg-zinc-800 text-zinc-400 border border-zinc-700"
-              : "bg-zinc-100 hover:bg-white active:bg-zinc-200 text-zinc-950 shadow-white/10"
-          }`}
+          className={`w-full h-16 min-h-[64px] text-[16px] sm:text-[20px] font-semibold rounded-[var(--radius-lg)] transition-opacity flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${muteButtonClass}`}
         >
-          <svg
-            className="w-7 h-7 sm:w-8 sm:h-8"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-            <line x1="23" y1="9" x2="17" y2="15" />
-            <line x1="17" y1="9" x2="23" y2="15" />
-          </svg>
-          <span>
-            {muting ? "Đang gửi…" : isMuted ? "Đã tắt tiếng" : "Tắt tiếng 15 giây"}
-          </span>
+          {muting ? "Đang gửi…" : isMuted ? "Đã tắt tiếng" : "Tắt tiếng 15 giây"}
         </button>
 
-        {/* Smaller Recalibrate Button */}
-        <div className="flex items-center justify-center w-full">
-          <button
-            type="button"
-            onClick={handleCalibrate}
-            disabled={!connected || calibrating}
-            aria-label="Hiệu chuẩn lại tư thế tài xế"
-            className="min-h-12 h-12 px-6 rounded-xl bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-800 text-zinc-300 hover:text-white text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="22" y1="12" x2="18" y2="12" />
-              <line x1="6" y1="12" x2="2" y2="12" />
-              <line x1="12" y1="6" x2="12" y2="2" />
-              <line x1="12" y1="22" x2="12" y2="18" />
-            </svg>
-            <span>{calibrating ? "Đang gửi…" : "Hiệu chuẩn lại"}</span>
-          </button>
-        </div>
+        {/* Recalibrate Button (min-h-12, h-12, outline) */}
+        <button
+          type="button"
+          onClick={handleCalibrate}
+          disabled={!connected || calibrating}
+          aria-label="Hiệu chuẩn lại tư thế tài xế"
+          className={`h-12 min-h-[48px] px-6 rounded-[var(--radius-lg)] transition-opacity text-[14px] sm:text-[16px] font-medium flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${recalibrateButtonClass}`}
+        >
+          {calibrating ? "Đang gửi…" : "Hiệu chuẩn lại"}
+        </button>
 
-        {/* Small Link to /monitor */}
+        {/* Link to /monitor */}
         <div className="pt-1">
           <Link
             href="/monitor"
-            className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4 py-2 px-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded"
+            className={`min-h-[48px] inline-flex items-center text-[14px] underline underline-offset-4 px-3 transition-colors ${linkClass}`}
           >
             Giám sát
           </Link>

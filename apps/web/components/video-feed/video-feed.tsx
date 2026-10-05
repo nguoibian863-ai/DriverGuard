@@ -2,7 +2,7 @@ import { API_URL } from "@/lib/api";
 
 export function VideoFeed({ active }: { active: boolean }) {
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-black">
+    <div className="monitor-video">
       {active ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -11,7 +11,7 @@ export function VideoFeed({ active }: { active: boolean }) {
           className="h-full w-full object-contain"
         />
       ) : (
-        <div className="flex h-full items-center justify-center text-sm text-zinc-400">
+        <div className="flex h-full items-center justify-center text-sm text-[var(--text-muted,#5c5c57)]">
           Chưa kết nối tới backend…
         </div>
       )}

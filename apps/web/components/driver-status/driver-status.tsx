@@ -1,18 +1,13 @@
 import type { Telemetry } from "@/types/telemetry";
 
 function Badge({ label, on, bad = true }: { label: string; on: boolean; bad?: boolean }) {
-  const color = !on
-    ? "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-    : bad
-      ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";
-  return <span className={`rounded-full px-3 py-1 text-xs font-medium ${color}`}>{label}</span>;
+  return <span className={`monitor-driver-badge ${on ? bad ? "is-danger" : "is-ok" : "is-inactive"}`}><span aria-hidden="true">{on ? bad ? "!" : "✓" : "–"}</span>{label}</span>;
 }
 
 function Stat({ name, value }: { name: string; value: string }) {
   return (
     <div>
-      <dt className="inline text-zinc-500">{name} </dt>
+      <dt className="inline monitor-muted">{name} </dt>
       <dd className="inline">{value}</dd>
     </div>
   );
@@ -20,8 +15,8 @@ function Stat({ name, value }: { name: string; value: string }) {
 
 export function DriverStatus({ t }: { t: Telemetry }) {
   return (
-    <section className="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-      <h2 className="text-sm font-medium text-zinc-500">Trạng thái tài xế</h2>
+    <section className="monitor-panel monitor-driver">
+      <h2 className="monitor-panel-title">Trạng thái tài xế</h2>
       <div className="flex flex-wrap gap-2">
         <Badge label="Thấy mặt" on={t.face_detected} bad={false} />
         <Badge label="Đã hiệu chuẩn" on={t.calibrated} bad={false} />
@@ -41,7 +36,7 @@ export function DriverStatus({ t }: { t: Telemetry }) {
         <Stat name="Trễ" value={`${t.latency_ms.face}ms`} />
       </dl>
       {t.error && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-[var(--danger,#b3261e)]">
           Lỗi: {t.error === "camera_unavailable" ? "không mở được camera" : t.error}
         </p>
       )}

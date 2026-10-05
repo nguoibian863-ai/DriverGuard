@@ -25,6 +25,30 @@
                                  "fix_attempts":  0,
                                  "max_fix_attempts":  3,
                                  "updated_at":  "2026-10-05T11:03:32.9840680+07:00"
+                             },
+                  "UI-003":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:25:47.7580053+07:00"
+                             },
+                  "UI-004":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:25:47.7880132+07:00"
                              }
               }
 }

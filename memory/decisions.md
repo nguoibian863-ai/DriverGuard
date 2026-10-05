@@ -13,3 +13,7 @@ Chưa có quyết định.
 
 ## 2026-10-05 — Hiệu chuẩn
 - Quyết định: backend tự hiệu chuẩn khi thấy mặt lần đầu; UI chỉ hiển thị vòng đếm, không tự gọi calibrate (tránh vòng lặp đặt lại). Nút "Hiệu chuẩn lại" do người dùng bấm.
+
+## 2026-10-05 — UI v2 (bỏ "mùi AI")
+- Quyết định: giao diện thực dụng kiểu HMI ô tô + bảng vận hành; không glow/gradient/pill/hero icon/câu quảng cáo; Inter có subset tiếng Việt; token màu sáng/tối một chỗ; trạng thái bình thường yên tĩnh, WARNING nền vàng, DANGER nền đỏ đặc. Đặc tả: docs/ui-design-spec.md.
+- Figma: file https://www.figma.com/design/wSNIVVu52YnG0VXp7JVUGJ chứa bản UI v1 (đã nối prototype) và một số bản chụp UI v2 chưa dọn; gói Starter đã hết hạn mức gọi công cụ MCP.
