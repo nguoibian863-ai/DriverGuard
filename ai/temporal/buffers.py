@@ -1,7 +1,7 @@
 """Lưu mẫu theo cửa sổ thời gian để đo tín hiệu liên tục."""
 
 from collections import deque
-from typing import Callable
+from collections.abc import Callable
 
 
 class TimedBuffer:
