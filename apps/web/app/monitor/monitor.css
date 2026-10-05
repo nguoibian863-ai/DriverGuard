@@ -1,0 +1,22 @@
+.monitor-page {
+  --monitor-surface: #181c24;
+  --monitor-border: #4b5565;
+  --monitor-text: #f5f7fa;
+  --monitor-muted: #bdc6d3;
+  --monitor-normal: #70e2ad;
+  --monitor-warning: #ffd46e;
+  --monitor-danger: #ff8e8e;
+  --monitor-normal-bg: #17352b;
+  --monitor-warning-bg: #413518;
+  --monitor-danger-bg: #461e25;
+  --monitor-grid: #647084;
+  --monitor-line: #e9f0ff;
+  --monitor-link: #a9d5ff;
+  --monitor-radius: 12px;
+  min-height: 100vh;
+  background: #101319;
+  color: var(--monitor-text);
+}
+.monitor-page .monitor-action { min-height: 48px; min-width: 48px; display: inline-flex; align-items: center; justify-content: center; }
+.monitor-page :is(a, button):focus-visible { outline: 3px solid var(--monitor-link); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .monitor-page *, .monitor-page *::before, .monitor-page *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

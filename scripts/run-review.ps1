@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$TaskId)
+﻿param([Parameter(Mandatory=$true)][string]$TaskId)
 
 $taskDir = Join-Path $PSScriptRoot "..\tasks\$TaskId"
 $reviewDir = Join-Path $PSScriptRoot "..\reviews"

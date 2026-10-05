@@ -1,1 +1,30 @@
-{"tasks": {}}
+﻿{
+    "tasks":  {
+                  "UI-001":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "reviewing",
+                                                       "fixing",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  1,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:03:32.9473592+07:00"
+                             },
+                  "UI-002":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:03:32.9840680+07:00"
+                             }
+              }
+}

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory=$true)][string]$TaskId,
     [int]$TimeoutSec = 300
 )
@@ -20,7 +20,9 @@ $promptContent = Get-Content -Path $promptPath -Raw -Encoding UTF8
 try {
     $agy = Join-Path $env:LOCALAPPDATA "agy\bin\agy.exe"
     # Quy tắc của sếp: prompt giao cho Gemini luôn bắt đầu bằng /boost
-    $result = & $agy -p "/boost $promptContent" --mode accept-edits --print-timeout "${TimeoutSec}s" 2>&1
+    # Windows PowerShell 5.1 không tự thoát dấu " khi gọi chương trình ngoài -> thoát thủ công
+    $arg = ("/boost " + $promptContent) -replace '"', '\"'
+    $result = & $agy -p $arg --mode accept-edits --print-timeout "${TimeoutSec}s" 2>&1
 } catch {
     $_.Exception.Message | Out-File -FilePath $logPath -Encoding UTF8
     Write-Error "Gemini CLI lỗi khi chạy — xem $logPath"

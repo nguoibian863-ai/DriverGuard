@@ -1,4 +1,4 @@
-param([int]$TimeoutSec = 300)
+﻿param([int]$TimeoutSec = 300)
 
 Write-Host "== Lint =="
 npm run lint

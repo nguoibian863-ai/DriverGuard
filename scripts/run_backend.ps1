@@ -1,4 +1,4 @@
-# Chạy backend DriverGuard (kèm AI worker). Dùng: .\scripts\run_backend.ps1 [-Simulate]
+﻿# Chạy backend DriverGuard (kèm AI worker). Dùng: .\scripts\run_backend.ps1 [-Simulate]
 param([switch]$Simulate, [int]$Port = 8000)
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
