@@ -41,12 +41,18 @@ export function StartGate({ connected, onStart }: StartGateProps) {
         </p>
       </section>
 
-      <footer className="flex justify-center w-full max-w-md mx-auto py-2">
+      <footer className="flex flex-wrap items-center justify-center gap-2 w-full max-w-md mx-auto py-2">
         <Link
           href="/monitor"
           className="min-h-[48px] inline-flex items-center text-[14px] text-[var(--text-muted)] hover:text-[var(--text)] underline underline-offset-4 px-3 transition-colors"
         >
           Giám sát
+        </Link>
+        <Link
+          href="/camera"
+          className="min-h-[48px] inline-flex items-center text-[14px] text-[var(--text-muted)] hover:text-[var(--text)] underline underline-offset-4 px-3 transition-colors"
+        >
+          Camera
         </Link>
       </footer>
     </main>

@@ -102,7 +102,7 @@ def test_ear_threshold_personalised_to_small_eyes():
     # Tài xế mắt nhỏ: EAR mở mắt ~0.21. Ngưỡng cố định 0.20 sẽ báo giả.
     pipe = DriverPipeline(Thresholds())
     run(pipe, 0.0, 5.0, lambda t: face(ear=0.21))
-    assert abs(pipe.ear_threshold - 0.147) < 0.01
+    assert abs(pipe.ear_threshold - max(0.10, min(0.20, 0.55 * pipe.ear_baseline))) < 1e-9
     res = run(pipe, 5.1, 6.0, lambda t: face(ear=0.20))
     assert not any(ev for _, _, ev in res)
     res = run(pipe, 11.2, 3.0, lambda t: face(ear=0.08))
@@ -118,3 +118,50 @@ def test_hand_covering_face_with_phone_is_not_absence():
     types = [e["event_type"] for _, _, ev in res for e in ev]
     assert "DRIVER_ABSENCE" not in types
     assert "PHONE_USAGE" in types
+
+
+def calibrated_pipe_with_ear(ear):
+    pipe = DriverPipeline(Thresholds())
+    run(pipe, 0.0, 5.0, lambda t: face(ear=ear, yaw=10.0, pitch=-5.0))
+    return pipe
+
+
+def event_types(results):
+    return [event["event_type"] for _, _, events in results for event in events]
+
+
+def test_squint_does_not_trigger_acute():
+    pipe = calibrated_pipe_with_ear(0.28)
+    assert abs(pipe.ear_threshold - 0.154) < 1e-9
+    res = run(pipe, 5.1, 3.0, lambda t: face(ear=0.17, yaw=10.0, pitch=-5.0))
+    assert "DROWSINESS_ACUTE" not in event_types(res)
+
+
+def test_closed_eyes_still_trigger_with_new_threshold():
+    pipe = calibrated_pipe_with_ear(0.28)
+    res = run(pipe, 5.1, 3.0, lambda t: face(ear=0.10, yaw=10.0, pitch=-5.0))
+    assert "DROWSINESS_ACUTE" in event_types(res)
+
+
+def test_looking_down_suppresses_closed_eyes():
+    pipe = calibrated_pipe_with_ear(0.28)
+    res = run(pipe, 5.1, 3.0, lambda t: face(ear=0.10, yaw=10.0, pitch=21.0))
+    assert "LOOKING_DOWN" in event_types(res)
+    assert "DROWSINESS_ACUTE" not in event_types(res)
+
+
+def test_yawning_suppresses_closed_eyes():
+    pipe = calibrated_pipe_with_ear(0.28)
+    res = run(pipe, 5.1, 3.0, lambda t: face(ear=0.12, mar=0.45, yaw=10.0, pitch=-5.0))
+    assert res[-1][1]["yawning"] is True
+    assert "DROWSINESS_ACUTE" not in event_types(res)
+
+
+def test_lost_face_after_large_turn_counts_as_looking_away():
+    pipe = calibrated_pipe()
+    run(pipe, 5.1, 1.0, lambda t: face(yaw=55.0, pitch=-5.0))
+    lost = run(pipe, 6.2, 2.9, lambda t: None)
+    assert "LOOKING_AWAY" in event_types(lost)
+    assert "DRIVER_ABSENCE" not in event_types(lost)
+    later = run(pipe, 9.2, 3.2, lambda t: None)
+    assert "DRIVER_ABSENCE" in event_types(later)

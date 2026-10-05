@@ -21,3 +21,7 @@ Chưa có quyết định.
 ## 2026-10-05 — Ngưỡng MAR
 - Quyết định: mar_threshold 0,60 -> 0,50. Lý do: thí nghiệm 4 (800 ảnh AI sinh): ngưỡng 0,60 chỉ Recall 0,675 (tính cả mất mặt 0,618); 0,50 cho F1 0,906, báo giả 2%. Không chọn 0,36 (tối ưu F1) vì dữ liệu âm quá dễ.
 - Trạng thái: áp dụng; cần kiểm chứng trên người thật (nói chuyện, cười).
+
+## 2026-10-05 — Sửa logic theo phiên thử người thật (AI-001)
+- mar_threshold 0,50 -> 0,40; hệ số ngưỡng mắt 0,7 -> 0,55 kẹp [0,10; 0,20]; dự phòng 0,15; không tính nhắm mắt khi cúi đầu/ngáp; mất mặt sau quay đầu lớn = LOOKING_AWAY.
+- Lý do và kiểm chứng: docs/EXPERIMENT_LOG.md mục 11–12. Hạn chế: n = 1, kiểm chứng trên cùng dữ liệu.

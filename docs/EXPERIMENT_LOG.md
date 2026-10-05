@@ -336,3 +336,35 @@ yolo26n: c1 0,09 · c2 0,23 · c3 0,19 · c4 0,08 (gần như không dùng đư�
 - Kịch bản diễn: mắt nhắm, ngáp và cười "theo lệnh" khác hành vi tự nhiên thật.
 - Độ trễ phát hiện tính từ mốc hướng dẫn không chính xác vì người thử có thể phản ứng sớm hoặc muộn.
 - Chưa có chấm điểm tự động theo nhãn thời gian; phân tích bằng thống kê theo pha.
+
+## 12. Sửa lỗi sau thí nghiệm 5 và kiểm chứng bằng phát lại (task AI-001, Codex viết, Claude review)
+
+### 12.1 Thay đổi (commit kèm theo)
+| Mục | Trước | Sau | Lý do |
+|---|---|---|---|
+| `mar_threshold` | 0,50 | **0,40** | Ngáp thật liên tục MAR > 0,40 trong 3,07 giây; nói chuyện/cười tối đa 0,30/0,33 |
+| Hệ số ngưỡng nhắm mắt (theo EAR mở mắt của người dùng) | 0,7, kẹp [0,10; 0,25] | **0,55, kẹp [0,10; 0,20]** | Cười/ngáp làm EAR < 0,20 hơn 1,8 giây (báo giả) |
+| Ngưỡng nhắm mắt dự phòng (chưa hiệu chuẩn) | 0,20 | **0,15** | Cùng lý do |
+| Không tính "nhắm mắt" khi | – | `relative_pitch > 20°` (đang cúi) hoặc `MAR > mar_threshold` (đang ngáp) | Cúi đầu và ngáp làm EAR giảm; đã có sự kiện LOOKING_DOWN / tín hiệu ngáp |
+| Mất mặt sau khi quay đầu lớn | Không có cảnh báo, sau 3 giây là DRIVER_ABSENCE | Trong ≤ 3 giây kể từ lần thấy mặt cuối với \|yaw tương đối\| ≥ 24° (0,8 × 30°): tính là LOOKING_AWAY, không báo DRIVER_ABSENCE | MediaPipe mất mặt khi quay ≥ ~50° |
+
+Test: 48 test lõi AI (trước 43) + 5 test backend, đều đạt; thêm 5 test mới cho các tình huống trên.
+
+### 12.2 Kiểm chứng bằng phát lại dữ liệu thật (scripts/replay_live_session.py)
+Phát lại 823 bản tin của phiên thử qua pipeline mới (hiệu chuẩn lại từ 4 giây đầu phiên: EAR mở mắt 0,233 -> ngưỡng nhắm mắt 0,128):
+| Pha | Trước (ghi lúc thử) | Sau (phát lại) |
+|---|---|---|
+| nhắm mắt | DROWSINESS_ACUTE (đúng) | DROWSINESS_ACUTE (đúng) |
+| cười | DROWSINESS_ACUTE (**báo giả**) | không cảnh báo |
+| ngáp | DROWSINESS_ACUTE (**báo giả**), không có cờ ngáp | cờ `yawning` bật (**đúng**), không báo buồn ngủ |
+| cúi đầu | LOOKING_DOWN + DROWSINESS_ACUTE (**báo giả**) | chỉ LOOKING_DOWN |
+| quay phải | không cảnh báo (mất mặt) | LOOKING_AWAY (**đúng**) |
+| quay trái | không cảnh báo | không cảnh báo (góc 27–33° chưa vượt ngưỡng 30° đủ lâu) |
+| chớp mắt, nói chuyện | không cảnh báo | không cảnh báo |
+
+### 12.3 Hạn chế (ghi rõ trong báo cáo)
+- **Kiểm chứng trên chính dữ liệu đã dùng để chỉnh tham số** (không phải tập kiểm tra riêng); n = 1 người; sau khi chỉnh cần quay lại phiên mới.
+- Quay trái vẫn không được phát hiện: góc 27–33° so với ngưỡng 30°; chưa đổi ngưỡng vì chỉ có một người thử.
+- Xuất hiện `CHRONIC_FATIGUE` ở giữa phiên: PERCLOS đạt ≥ 25% trong cửa sổ ngắn do kịch bản nhắm mắt nhiều lần; hành vi hợp lý với kịch bản nhưng chưa đánh giá trên lái xe thực.
+- Điện thoại vẫn chưa kết luận (phát lại không có thông tin vùng ROI).
+- Phát lại dùng roll = 0 vì phiên không lưu roll (không ảnh hưởng logic hiện tại).

@@ -1,6 +1,6 @@
-ear_threshold: 0.20        # EAR thấp hơn => mắt nhắm
+ear_threshold: 0.15        # EAR thấp hơn => mắt nhắm
 eyes_closed_s: 1.8         # nhắm mắt liên tục => DROWSINESS_ACUTE
-mar_threshold: 0.50        # MAR cao hơn => miệng mở rộng (ngáp); 0.60 -> 0.50 theo thí nghiệm 4 (docs/EXPERIMENT_LOG.md mục 10)
+mar_threshold: 0.40        # MAR cao hơn => miệng mở rộng (ngáp); 0.50 -> 0.40 theo thí nghiệm 5
 yawn_s: 2.0
 yaw_threshold: 30.0        # độ, so với tư thế chuẩn
 pitch_threshold: 20.0

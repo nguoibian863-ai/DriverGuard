@@ -49,6 +49,29 @@
                                  "fix_attempts":  0,
                                  "max_fix_attempts":  3,
                                  "updated_at":  "2026-10-05T11:25:47.7880132+07:00"
+                             },
+                  "AI-001":  {
+                                 "status":  "implementing",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T12:24:16.0090425+07:00"
+                             },
+                  "UI-005":  {
+                                 "status":  "fixing",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "reviewing",
+                                                       "fixing"
+                                                   ],
+                                 "fix_attempts":  1,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T12:41:32.3534821+07:00"
                              }
               }
 }

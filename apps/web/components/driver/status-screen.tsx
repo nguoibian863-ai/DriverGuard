@@ -284,13 +284,19 @@ export function StatusScreen({ telemetry, connected }: StatusScreenProps) {
           {calibrating ? "Đang gửi…" : "Hiệu chuẩn lại"}
         </button>
 
-        {/* Link to /monitor */}
-        <div className="pt-1">
+        {/* Link to /monitor and /camera */}
+        <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
           <Link
             href="/monitor"
             className={`min-h-[48px] inline-flex items-center text-[14px] underline underline-offset-4 px-3 transition-colors ${linkClass}`}
           >
             Giám sát
+          </Link>
+          <Link
+            href="/camera"
+            className={`min-h-[48px] inline-flex items-center text-[14px] underline underline-offset-4 px-3 transition-colors ${linkClass}`}
+          >
+            Camera
           </Link>
         </div>
       </footer>

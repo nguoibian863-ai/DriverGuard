@@ -10,9 +10,9 @@ CONFIG_PATH = Path(__file__).resolve().parents[1] / "config" / "thresholds.yaml"
 
 @dataclass
 class Thresholds:
-    ear_threshold: float = 0.20
+    ear_threshold: float = 0.15
     eyes_closed_s: float = 1.8
-    mar_threshold: float = 0.50
+    mar_threshold: float = 0.40
     yawn_s: float = 2.0
     yaw_threshold: float = 30.0
     pitch_threshold: float = 20.0

@@ -71,6 +71,8 @@ class DriverPipeline:
         self._started: dict[str, float] = {}
         self._ear_cal: list[float] = []
         self.ear_baseline: float | None = None
+        self.last_face_time: float | None = None
+        self.last_rel_yaw = 0.0
 
     # --- điều khiển ---
     def start_calibration(self) -> None:
@@ -80,10 +82,10 @@ class DriverPipeline:
 
     @property
     def ear_threshold(self) -> float:
-        """Ngưỡng nhắm mắt: 70% EAR lúc mở mắt bình thường của chính tài xế (kẹp 0.10-0.25)."""
+        """Ngưỡng nhắm mắt: 55% EAR mở mắt của tài xế, kẹp [0.10, 0.20]; chưa hiệu chuẩn dùng ngưỡng dự phòng."""
         if self.ear_baseline is None:
             return self.th.ear_threshold
-        return min(0.25, max(0.10, 0.7 * self.ear_baseline))
+        return min(0.20, max(0.10, 0.55 * self.ear_baseline))
 
     def mute(self, now: float, duration_s: float) -> None:
         self._mute_until = now + duration_s
@@ -100,6 +102,7 @@ class DriverPipeline:
         rel_yaw = rel_pitch = 0.0
         ear = mar = yaw = pitch = roll = 0.0
         eyes_closed_s = 0.0
+        eye_closed_now = False
         if face is not None:
             ear, mar, yaw, pitch, roll = face.ear, face.mar, face.yaw, face.pitch, face.roll
             pitch_signed = pitch * t.pitch_sign
@@ -111,9 +114,13 @@ class DriverPipeline:
                 self.ear_baseline = float(median(self._ear_cal))
             if self.calibrator.is_calibrated:
                 rel_yaw, rel_pitch = self.calibrator.relative(yaw, pitch_signed)
-            self.eye_buffer.push(now, ear)
+            self.last_face_time = now
+            self.last_rel_yaw = rel_yaw
+            suppress_eyes = (self.calibrator.is_calibrated and rel_pitch > t.pitch_threshold) or mar > t.mar_threshold
+            eye_closed_now = ear < self.ear_threshold and not suppress_eyes
+            self.eye_buffer.push(now, ear if not suppress_eyes else self.ear_threshold)
             eyes_closed_s = self.eye_buffer.duration_below(self.ear_threshold)
-            self._closed_samples.append((now, ear < self.ear_threshold))
+            self._closed_samples.append((now, eye_closed_now))
         else:
             self.eye_buffer.reset()
         while self._closed_samples and self._closed_samples[0][0] < now - t.perclos_window_s:
@@ -121,14 +128,19 @@ class DriverPipeline:
 
         calibrated = self.calibrator.is_calibrated
         head = classify_head(rel_yaw, rel_pitch, t.yaw_threshold, t.pitch_threshold)
+        recent_away = (
+            not has_face and calibrated and self.last_face_time is not None
+            and now - self.last_face_time <= 3.0
+            and abs(self.last_rel_yaw) >= 0.8 * t.yaw_threshold
+        )
         signals = {
-            "DROWSINESS_ACUTE": has_face and ear < self.ear_threshold,
+            "DROWSINESS_ACUTE": has_face and eye_closed_now,
             "YAWNING": has_face and mar > t.mar_threshold,
-            "LOOKING_AWAY": has_face and calibrated and head == "LOOKING_AWAY",
+            "LOOKING_AWAY": (has_face and calibrated and head == "LOOKING_AWAY") or recent_away,
             "LOOKING_DOWN": has_face and calibrated and head == "LOOKING_DOWN",
             "PHONE_USAGE": phone.usage_candidate,
             # Có điện thoại ở vùng sử dụng => tài xế vẫn ở đó (tay che mặt), không báo vắng mặt
-            "DRIVER_ABSENCE": not has_face and not phone.usage_candidate,
+            "DRIVER_ABSENCE": not has_face and not recent_away and not phone.usage_candidate,
         }
         fsms = {
             "DROWSINESS_ACUTE": self.eyes_fsm,
