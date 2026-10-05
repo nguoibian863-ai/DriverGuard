@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+.next/
+data/raw/
+data/interim/
+data/processed/
+models/pytorch/
+models/onnx/
+models/tensorrt/
+*.db

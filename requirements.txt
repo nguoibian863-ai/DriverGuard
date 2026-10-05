@@ -1,0 +1,17 @@
+# AI / Computer Vision
+numpy
+opencv-python
+mediapipe
+ultralytics
+# GPU (CUDA 12.8): pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+torch
+torchvision
+onnx
+onnxruntime
+pyyaml
+
+# Backend
+fastapi
+uvicorn[standard]
+pydantic
+websockets
