@@ -28,6 +28,24 @@ def is_usage_region(phone: Box, face: Box | None) -> bool:
     return abs(cx - face_cx) <= 1.5 * fw and fy1 - 0.5 * fh <= cy <= fy2 + 3.0 * fh
 
 
+class FaceBoxHold:
+    """Giữ hộp mặt cuối cùng trong hold_s giây.
+
+    Khi tay che mặt lúc gọi điện thoại, MediaPipe mất mặt; vẫn cần vùng mặt để lọc ROI điện thoại.
+    """
+
+    def __init__(self, hold_s: float = 2.0) -> None:
+        self.hold_s = hold_s
+        self._box: Box | None = None
+        self._time = -1e9
+
+    def update(self, now: float, box: Box | None) -> Box | None:
+        if box is not None:
+            self._box, self._time = box, now
+            return box
+        return self._box if now - self._time <= self.hold_s else None
+
+
 class PhoneDetector:
     """YOLO nano; tự dùng GPU nếu có."""
 

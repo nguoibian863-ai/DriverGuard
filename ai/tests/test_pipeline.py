@@ -107,3 +107,14 @@ def test_ear_threshold_personalised_to_small_eyes():
     assert not any(ev for _, _, ev in res)
     res = run(pipe, 11.2, 3.0, lambda t: face(ear=0.08))
     assert [e["event_type"] for _, _, ev in res for e in ev] == ["DROWSINESS_ACUTE"]
+
+
+def test_hand_covering_face_with_phone_is_not_absence():
+    pipe = calibrated_pipe()
+    res = run(
+        pipe, 5.1, 4.0, lambda t: None,
+        lambda t: PhoneObservation(detected=True, usage_candidate=True),
+    )
+    types = [e["event_type"] for _, _, ev in res for e in ev]
+    assert "DRIVER_ABSENCE" not in types
+    assert "PHONE_USAGE" in types

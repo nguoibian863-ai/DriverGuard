@@ -127,7 +127,8 @@ class DriverPipeline:
             "LOOKING_AWAY": has_face and calibrated and head == "LOOKING_AWAY",
             "LOOKING_DOWN": has_face and calibrated and head == "LOOKING_DOWN",
             "PHONE_USAGE": phone.usage_candidate,
-            "DRIVER_ABSENCE": not has_face,
+            # Có điện thoại ở vùng sử dụng => tài xế vẫn ở đó (tay che mặt), không báo vắng mặt
+            "DRIVER_ABSENCE": not has_face and not phone.usage_candidate,
         }
         fsms = {
             "DROWSINESS_ACUTE": self.eyes_fsm,

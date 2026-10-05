@@ -88,6 +88,13 @@ Bộ dữ liệu là ảnh đời thường, **không phải trong xe**; điện
 - Trọng số tự tải vào `models/` lần chạy đầu (yolo26x nặng 119 MB, đã bị `.gitignore`).
 - Vẫn cần thử với điện thoại thật trong xe; nên fine-tune trên dữ liệu State Farm nếu chưa đủ.
 
+## 3c. Đánh giá trong xe (State Farm, 1.500 ảnh)
+
+Chi tiết: `docs/EXPERIMENT_LOG.md` mục 8. Mức ảnh, ngưỡng 0,25: **yolo26x F1 0,88** (Recall 0,90, báo giả 0,10);
+yolo26m F1 0,81; yolo26s F1 0,74; yolo26n F1 0,26 (Recall 0,15, không dùng được trong xe).
+Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào việc thấy mặt, mà tay che mặt khi gọi điện thoại làm MediaPipe mất mặt
+(Recall PHONE_USAGE chỉ 0,10); đã thêm giữ hộp mặt 2 giây và không báo vắng mặt khi có điện thoại. Chưa kiểm chứng lại trên camera chính diện.
+
 ## 4. Giới hạn đã biết (chưa làm hoặc chưa chắc)
 
 - **Dấu của pitch chưa được kiểm chứng.** Quy ước góc từ ma trận MediaPipe có thể làm "cúi đầu" ra pitch âm. Đã có tham số `pitch_sign` trong `ai/config/thresholds.yaml` để đảo.

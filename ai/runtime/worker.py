@@ -108,7 +108,7 @@ class _PhoneThread(threading.Thread):
 
 def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) -> None:
     from ai.perception.face_landmarks import FaceLandmarkTracker
-    from ai.perception.phone_detector import is_usage_region
+    from ai.perception.phone_detector import FaceBoxHold, is_usage_region
 
     pipeline = DriverPipeline(load_thresholds())
     cmds = _Commands(command_q, pipeline)
@@ -117,6 +117,7 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
     if config.get("enable_phone", True):
         phone_thread.start()
     cam_fps, face_fps = FpsCounter(), FpsCounter()
+    face_hold = FaceBoxHold(2.0)
     pending_events: list[dict] = []
     last_sent = 0.0
     cap = None
@@ -146,11 +147,12 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
         face_ms = int((time.time() - t0) * 1000)
         face_fps.tick(now)
 
+        roi_box = face_hold.update(now, face_box)
         recent = time.time() - phone_thread.updated < 1.0
         boxes = phone_thread.boxes if recent else []
         phone = PhoneObservation(
             detected=bool(boxes),
-            usage_candidate=any(is_usage_region(b, face_box) for b in boxes),
+            usage_candidate=any(is_usage_region(b, roi_box) for b in boxes),
         )
         tele, events = pipeline.update(now, obs, phone)
         tele["fps"] = {"camera": cam_fps.value(now), "face": face_fps.value(now),

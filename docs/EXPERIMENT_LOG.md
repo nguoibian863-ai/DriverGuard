@@ -164,3 +164,60 @@ $env:DRIVERGUARD_YOLO_MODEL = "yolo26m.pt"
 ```
 Đánh giá model: tải 2 file parquet về thư mục hiện tại rồi chạy `python scripts/eval_phone_coco.py`
 (cần `pip install pyarrow pillow`); sửa vòng lặp cuối của script để chọn model/imgsz/conf cần so.
+
+## 8. Thí nghiệm 2: phát hiện điện thoại trong xe (State Farm)
+
+### 8.1 Dữ liệu và quy trình
+- Nguồn: `gymprathap/Driver-Distracted-Dataset` trên HuggingFace, bản sao của State Farm Distracted Driver Detection
+  (Kaggle), 22.424 ảnh train, 10 lớp; số ảnh mỗi lớp khớp với bản Kaggle. Giấy phép ghi `cc` do người đăng tải;
+  gốc là dữ liệu cuộc thi Kaggle, chỉ dùng cho nghiên cứu/đánh giá ở đây.
+- **Mẫu: 150 ảnh/lớp × 10 lớp = 1.500 ảnh** (`random.seed(0)`), tải bằng HTTP range từ file zip 4 GB (`scripts/fetch_state_farm_sample.py`).
+  Ảnh 640×480; camera đặt **bên cạnh tài xế** (nhìn nghiêng), xe đứng yên.
+- Nhãn mức ảnh (không có hộp): **dương** = c1 nhắn tin (phải), c2 gọi (phải), c3 nhắn tin (trái), c4 gọi (trái) (600 ảnh);
+  **âm** = c0 lái an toàn, c5 radio, c6 uống nước, c7 với ra sau, c8 trang điểm, c9 nói chuyện với hành khách (900 ảnh).
+- Quyết định của ảnh: có ít nhất một hộp `cell phone` với độ tin cậy ≥ ngưỡng (cột "Có-hộp"), hoặc
+  hộp đó nằm trong vùng sử dụng quanh mặt (`is_usage_region`) **và** MediaPipe thấy mặt (cột "PHONE_USAGE").
+- Model: yolo26n/s/m/l/x COCO tiền huấn luyện, `imgsz=640`, ngưỡng 0,10/0,25/0,40, GPU. Mỗi ảnh một lần suy luận (conf 0,10, lọc sau).
+  MediaPipe tạo mới cho mỗi ảnh. Mã: `scripts/eval_phone_state_farm.py`. Số liệu thô: `docs/experiments/phone_state_farm.{json,csv}`.
+
+### 8.2 Kết quả (mức ảnh, ngưỡng tin cậy 0,25)
+
+| Model | Độ trễ (ms) | Precision | Recall | F1 | Báo giả (FPR) |
+|---|---|---|---|---|---|
+| yolo26n | 11,2 | 0,98 | 0,15 | 0,26 | 0,00 |
+| yolo26s | 13,0 | 0,84 | 0,66 | 0,74 | 0,08 |
+| yolo26m | 25,2 | 0,82 | 0,81 | 0,81 | 0,12 |
+| yolo26l | 31,3 | 0,86 | 0,82 | 0,84 | 0,09 |
+| **yolo26x** | 53,8 | 0,86 | **0,90** | **0,88** | 0,10 |
+
+yolo26x theo ngưỡng: conf 0,10 → P 0,75 R 0,95 F1 0,84 FPR 0,21; conf 0,25 → P 0,86 R 0,90 F1 0,88 FPR 0,10;
+conf 0,40 → P 0,89 R 0,81 F1 0,85 FPR 0,07. (Ma trận nhầm yolo26x, 0,25: TP 539, FP 90, FN 61, TN 810.)
+
+Tỉ lệ phát hiện điện thoại theo lớp, yolo26x, 0,25: c1 0,92 · c2 0,93 · c3 0,97 · c4 0,77 (đúng);
+báo giả: c0 0,13 · c5 0,07 · c6 0,12 · c7 0,09 · c8 0,13 · c9 0,07.
+yolo26n: c1 0,09 · c2 0,23 · c3 0,19 · c4 0,08 (gần như không dùng được trong xe).
+
+### 8.3 Phát hiện chính
+1. **Cỡ model quyết định.** Trong xe, yolo26n chỉ tìm được 15% ca dùng điện thoại, yolo26x tìm được 90%.
+   Kết quả này khớp thí nghiệm 1 (COCO) và xác nhận chọn `yolo26x` làm mặc định. Trên ảnh trong xe, F1 (0,88) cao hơn nhiều so với COCO (0,76).
+   Điện thoại lớn hơn trong khung hình nên dễ hơn.
+2. **Không cần fine-tune trước mắt**: F1 0,88 với trọng số COCO. Chưa đo trên xe thật của sếp.
+3. **Lỗi thiết kế của lọc vùng (ROI): phụ thuộc vào việc thấy mặt.** Tỉ lệ MediaPipe thấy mặt theo lớp:
+   c0 0,19 · c1 0,35 · **c2 0,06** · c3 0,20 · c4 0,45 · c5 0,53 · c6 0,27 · c7 0,57 · c8 0,32 · c9 0,86.
+   Khi dùng điện thoại, tay che mặt và mặt nghiêng nên mất mặt; Recall của PHONE_USAGE (cần ROI + mặt) chỉ 0,10 ở yolo26x
+   (F1 0,18) so với 0,90 khi chỉ cần có hộp.
+   Mặt thấp một phần do camera State Farm nhìn nghiêng (hình học khác hệ thống của chúng ta đặt camera chính diện),
+   nhưng việc tay che mặt khi gọi điện thoại cũng xảy ra với camera chính diện.
+4. **Hệ quả nghiêm trọng hơn:** khi mất mặt, hệ thống cũ báo `DRIVER_ABSENCE` ("không thấy tài xế") đúng lúc tài xế đang gọi điện.
+
+### 8.4 Đã sửa sau thí nghiệm này (commit kèm theo)
+- `FaceBoxHold`: giữ hộp mặt cuối cùng 2 giây để vẫn lọc ROI khi tay che mặt.
+- Không báo `DRIVER_ABSENCE` nếu có điện thoại ở vùng sử dụng. Có test cho cả hai.
+- **Chưa kiểm chứng lại bằng State Farm** vì ở bộ này mặt hầu như không bao giờ được thấy ngay từ đầu (nên giữ hộp mặt cũ không có tác dụng).
+  Cần thử trên camera chính diện thật.
+
+### 8.5 Hạn chế
+- Nhãn mức ảnh, không có hộp: không tính được Precision/Recall theo hộp, chỉ "có/không phát hiện điện thoại" trên ảnh.
+- Mẫu 1.500 ảnh (6,7% bộ train); không chia theo từng người lái (không có mã tài xế trong bản sao này), không có khoảng tin cậy.
+- Độ trễ lấy trung vị trên 1.500 ảnh, một lần chạy.
+- Dữ liệu chụp xe đứng yên, ban ngày; không có ban đêm/hồng ngoại.
