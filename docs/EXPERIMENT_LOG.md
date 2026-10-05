@@ -295,3 +295,44 @@ yolo26n: c1 0,09 · c2 0,23 · c3 0,19 · c4 0,08 (gần như không dùng đư�
 - Không có ảnh nói chuyện/cười/ăn/uống làm âm tính khó; FPR ở bảng là cận dưới (lạc quan).
 - Ảnh tĩnh, chưa đo thời lượng miệng mở trong video (cần YawDD thật hoặc quay người thật).
 - Ngưỡng 0,50 là thỏa hiệp chưa kiểm chứng trên người thật.
+
+## 11. Thí nghiệm 5: phiên thử có hướng dẫn với người thật trên camera laptop
+
+### 11.1 Thiết lập
+- 1 người tham gia (n = 1), ngồi trước camera laptop, đèn trong nhà. Camera đặt trên màn hình nên nhìn từ trên xuống.
+- Backend chạy camera thật (không mô phỏng), cấu hình khi đó: `mar_threshold` 0,50; ngưỡng mắt = 0,7 × EAR mở mắt (kẹp 0,10–0,25); YOLO `yolo26x`.
+- Kịch bản `scripts/live_session.py` (trang đếm giờ + ghi telemetry): 16 pha, khoảng 87 giây ghi được, **823 bản tin**, chỉ lưu chỉ số (EAR, MAR, góc, cờ), không lưu hình.
+- Số liệu thô: `docs/experiments/live_session.json`.
+- **Lỗi thiết lập của tôi**: không bấm hiệu chuẩn lại ngay trước phiên, nên mốc tư thế chuẩn là tư thế lúc backend khởi động, không phải lúc bắt đầu; do đó các góc "tương đối" trong bảng bị lệch. Góc tuyệt đối (yaw/pitch) và EAR/MAR không bị ảnh hưởng.
+- Hiệu năng: FPS camera/mặt trung vị **15** (mục tiêu UR-15 ≥ 20, chưa đạt do camera laptop ở 15 FPS trong nhà), độ trễ xử lý mặt trung vị **14 ms**, YOLO ~5 FPS.
+
+### 11.2 Kết quả theo pha (thời gian liên tục dài nhất, giây, mặt thấy mặt)
+| Pha | Việc người thử làm | EAR<0,20 | EAR<0,15 | MAR>0,30 | MAR>0,40 | MAR>0,50 | Cờ/sự kiện của hệ thống |
+|---|---|---|---|---|---|---|---|
+| nhắm mắt | nhắm mắt 4 giây | 3,95 | 3,82 | 0 | 0 | 0 | eyes_closed + DROWSINESS_ACUTE (**đúng**) |
+| chớp mắt | chớp bình thường | 0,80 | 0,80 | 0 | 0 | 0 | không (**đúng**) |
+| cúi đầu | cúi nhìn xuống | 2,21 | 2,21 | 0 | 0 | 0 | LOOKING_DOWN (**đúng**) + DROWSINESS_ACUTE (**báo giả**) |
+| ngáp | há miệng to 4 giây | 2,61 | 0,34 | 3,22 | 3,07 | 0,94 | **không có cờ ngáp** (MAR ≤ 0,50 không đủ 2 giây) + DROWSINESS_ACUTE (**báo giả**) |
+| nói chuyện | đếm 1–15 | 1,25 | 0,61 | 0 | 0 | 0 | không (**đúng**) |
+| cười | cười to | 2,43 | 1,01 | 0 | 0 | 0 | DROWSINESS_ACUTE (**báo giả**) |
+| quay trái | quay đầu trái | 0,26 | 0 | 0,34 | 0,13 | 0 | không có LOOKING_AWAY (thấy mặt 83%) |
+| quay phải | quay đầu phải | 0 | 0 | 0,07 | 0 | 0 | không có LOOKING_AWAY (**mất mặt ~1,5 giây, thấy mặt 65%**) |
+| điện thoại | cầm điện thoại trước ngực | 1,14 | 0,93 | 0 | 0 | 0 | `phone_detected` 5/54 bản tin, không có PHONE_USAGE |
+
+### 11.3 Phát hiện
+1. **Dấu của pitch đúng** (`pitch_sign = +1`): cúi đầu cho `relative_pitch` đạt +25,8°, vượt 20° trong 2,09 giây và hệ thống phát LOOKING_DOWN.
+2. **Nhắm mắt thật được phát hiện** (EAR trung vị 0,095, liên tục 3,95 giây) và chớp mắt/nói chuyện không báo nhầm.
+3. **Báo giả buồn ngủ ở 3 tình huống**: cúi đầu, ngáp, cười. EAR tụt dưới 0,20 liên tục hơn 1,8 giây vì nheo mắt khi cười/ngáp và vì góc nhìn từ camera khi cúi đầu.
+   Với ngưỡng 0,15: cười (1,01 giây) và ngáp (0,34 giây) hết báo giả, nhưng cúi đầu vẫn 2,21 giây; nhắm mắt thật vẫn 3,82 giây.
+4. **Ngáp không được phát hiện với MAR 0,50**: miệng mở có MAR 0,5–0,66 nhưng chỉ liên tục > 0,50 trong 0,94 giây. Với 0,40 là 3,07 giây (≥ 2 giây).
+   Nói chuyện (MAR tối đa 0,30) và cười (tối đa 0,33) không vượt 0,40. Với người này, 0,40 tách sạch ngáp khỏi nói chuyện và cười.
+5. **Lỗ hổng "mất mặt khi quay đầu lớn"**: khi quay phải khoảng 50°, MediaPipe mất mặt hơn 1 giây; vì tín hiệu LOOKING_AWAY yêu cầu thấy mặt nên không phát cảnh báo, và DRIVER_ABSENCE chưa tới 3 giây.
+6. **Quay trái chưa đạt ngưỡng**: góc tương đối đạt khoảng 27–33° (ngưỡng 30°), không kéo dài 2 giây.
+7. **Điện thoại: chưa kết luận được**: YOLO chỉ thấy điện thoại 5/54 bản tin khi cầm trước ngực. Chưa biết điện thoại có nằm trong khung hình camera laptop hay không.
+8. **Hiệu chuẩn tư thế dễ sai** nếu người dùng chưa vào tư thế khi hệ thống tự hiệu chuẩn lần đầu (xem 11.1).
+
+### 11.4 Hạn chế
+- n = 1 người, một lần chạy, camera laptop góc nhìn từ trên, ánh sáng trong nhà; không có kính râm/ban đêm.
+- Kịch bản diễn: mắt nhắm, ngáp và cười "theo lệnh" khác hành vi tự nhiên thật.
+- Độ trễ phát hiện tính từ mốc hướng dẫn không chính xác vì người thử có thể phản ứng sớm hoặc muộn.
+- Chưa có chấm điểm tự động theo nhãn thời gian; phân tích bằng thống kê theo pha.
