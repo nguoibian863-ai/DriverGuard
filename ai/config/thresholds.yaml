@@ -1,0 +1,14 @@
+ear_threshold: 0.20        # EAR thấp hơn => mắt nhắm
+eyes_closed_s: 1.8         # nhắm mắt liên tục => DROWSINESS_ACUTE
+mar_threshold: 0.60        # MAR cao hơn => miệng mở rộng (ngáp)
+yawn_s: 2.0
+yaw_threshold: 30.0        # độ, so với tư thế chuẩn
+pitch_threshold: 20.0
+head_s: 2.0
+phone_s: 1.5
+absence_s: 3.0
+cooldown_s: 3.0
+calibration_s: 4.0
+perclos_window_s: 60.0
+yawn_window_s: 300.0
+pitch_sign: 1.0            # đổi thành -1.0 nếu cúi đầu cho pitch âm
