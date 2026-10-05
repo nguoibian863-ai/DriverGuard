@@ -1,11 +1,14 @@
 """Phát hiện điện thoại bằng YOLO nano + lọc ROI không gian (PHONE_VISIBLE vs PHONE_USAGE)."""
 
+import os
 from pathlib import Path
 
 import numpy as np
 
 PHONE_CLASS_ID = 67  # 'cell phone' trong COCO
-WEIGHTS = Path(__file__).resolve().parents[2] / "models" / "yolo11n.pt"
+MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+# Đổi model bằng biến môi trường, ví dụ DRIVERGUARD_YOLO_MODEL=yolo26n.pt
+WEIGHTS = MODELS_DIR / os.getenv("DRIVERGUARD_YOLO_MODEL", "yolo26n.pt")
 
 Box = tuple[int, int, int, int]
 
@@ -28,19 +31,19 @@ def is_usage_region(phone: Box, face: Box | None) -> bool:
 class PhoneDetector:
     """YOLO nano; tự dùng GPU nếu có."""
 
-    def __init__(self, weights: Path = WEIGHTS, conf: float = 0.35) -> None:
+    def __init__(self, weights: Path = WEIGHTS, conf: float = 0.25) -> None:
         import torch
         from ultralytics import YOLO
 
         self.device = 0 if torch.cuda.is_available() else "cpu"
         self.conf = conf
         weights.parent.mkdir(parents=True, exist_ok=True)
-        # Nếu chưa có file, ultralytics tự tải 'yolo11n.pt' về thư mục hiện tại
-        self.model = YOLO(str(weights) if weights.exists() else "yolo11n.pt")
+        # Nếu chưa có file trong models/, ultralytics tự tải theo tên về thư mục cache
+        self.model = YOLO(str(weights) if weights.exists() else weights.name)
 
     def detect(self, bgr: np.ndarray) -> list[Box]:
         results = self.model.predict(
-            bgr, classes=[PHONE_CLASS_ID], conf=self.conf, device=self.device, verbose=False, imgsz=320
+            bgr, classes=[PHONE_CLASS_ID], conf=self.conf, device=self.device, verbose=False, imgsz=640
         )
         boxes: list[Box] = []
         for r in results:

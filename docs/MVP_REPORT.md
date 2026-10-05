@@ -50,6 +50,30 @@ MVP **chạy được từ đầu đến cuối** trên máy này: camera → Me
 5. Tiến trình worker không thoát sau lệnh `stop` do hàng đợi còn dữ liệu. Đã sửa.
 6. Backend: `camera_connected` bị phụ thuộc vào việc thấy mặt (sai); sự kiện không gắn phiên lái nào; `/config` không trả ngưỡng; backend không tự tìm được package `ai`. Đã sửa cả bốn.
 
+## 3b. So sánh model điện thoại (đo bằng COCO val2017)
+
+Tôi tự đo trên 214 ảnh có điện thoại (262 hộp) và 400 ảnh không có điện thoại, GPU RTX 3050. Script: `scripts/eval_phone_coco.py`.
+Bộ dữ liệu là ảnh đời thường, **không phải trong xe**; điện thoại ở đây thường nhỏ nên Recall thấp hơn thực tế khi cầm sát mặt.
+
+| Model | imgsz | conf | Precision | Recall | F1 | Recall hộp lớn* | Báo giả/ảnh | ms/ảnh |
+|---|---|---|---|---|---|---|---|---|
+| yolo11n | 320 | 0,35 | 0,81 | 0,20 | 0,32 | 0,51 | 0,003 | 20 |
+| yolo26n | 320 | 0,35 | 0,89 | 0,19 | 0,31 | 0,50 | 0,003 | 21 |
+| yolo11n | 640 | 0,35 | 0,84 | 0,33 | 0,48 | 0,65 | 0,003 | 21 |
+| yolo26n | 640 | 0,35 | 0,89 | 0,30 | 0,45 | 0,63 | 0,000 | 21 |
+| yolo11n | 640 | 0,20 | 0,73 | 0,40 | 0,52 | 0,72 | 0,007 | 20 |
+| yolo26n | 640 | 0,20 | 0,79 | 0,36 | 0,50 | 0,71 | 0,005 | 21 |
+| yolo11n | 960 | 0,20 | 0,71 | 0,47 | 0,56 | 0,71 | 0,003 | 22 |
+| yolo26n | 960 | 0,20 | 0,81 | 0,47 | 0,60 | 0,71 | 0,005 | 24 |
+
+*Hộp lớn: chiếm từ 2% diện tích ảnh, gần với điện thoại cầm trước camera (n = 68).
+
+**Kết luận và thay đổi:**
+- Hai model ngang nhau về Recall; `yolo26n` có Precision cao hơn ở 5/6 cấu hình, chậm hơn khoảng 1 ms. Số mẫu nhỏ nên chênh lệch chưa có ý nghĩa thống kê chắc chắn.
+- **Cấu hình cũ (`imgsz=320`) bỏ sót nhiều**: Recall chỉ 0,20 (0,51 với hộp lớn). Tăng lên 640 cho Recall 0,33 (0,65) mà thời gian gần như không đổi.
+- Mặc định mới: `yolo26n.pt`, `imgsz=640`, `conf=0,25`. Đổi model bằng biến môi trường `DRIVERGUARD_YOLO_MODEL`.
+- Vẫn cần thử với điện thoại thật trong xe; nên fine-tune trên dữ liệu State Farm nếu chưa đủ.
+
 ## 4. Giới hạn đã biết (chưa làm hoặc chưa chắc)
 
 - **Dấu của pitch chưa được kiểm chứng.** Quy ước góc từ ma trận MediaPipe có thể làm "cúi đầu" ra pitch âm. Đã có tham số `pitch_sign` trong `ai/config/thresholds.yaml` để đảo.
