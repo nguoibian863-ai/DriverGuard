@@ -221,3 +221,35 @@ yolo26n: c1 0,09 · c2 0,23 · c3 0,19 · c4 0,08 (gần như không dùng đư�
 - Mẫu 1.500 ảnh (6,7% bộ train); không chia theo từng người lái (không có mã tài xế trong bản sao này), không có khoảng tin cậy.
 - Độ trễ lấy trung vị trên 1.500 ảnh, một lần chạy.
 - Dữ liệu chụp xe đứng yên, ban ngày; không có ban đêm/hồng ngoại.
+
+## 9. Thí nghiệm 3: EAR phân biệt mắt nhắm / mở (ảnh khuôn mặt do AI sinh)
+
+### 9.1 Dữ liệu và quy trình
+- Nguồn: `MichalMlodawski/closed-open-eyes` (HuggingFace, giấy phép `odc-by`), 126.560 ảnh 512×512; thẻ tác giả: `ai-generated`,
+  `balanced-dataset`. **Đây là khuôn mặt do AI sinh**, đa dạng tuổi, giới tính, bối cảnh (trong tàu, bãi biển, rừng...), có trẻ em.
+  Không phải ảnh người lái thật.
+- Mẫu: 20 phần (shard) cách đều trong 1.268 phần, mỗi phần 100 ảnh, xáo trộn `random.seed(0)`: **2.000 ảnh** = 1.100 nhắm (`closed_eyes`) + 900 mở (`open_eyes`).
+  Nhãn theo cả phần/ảnh do tác giả cung cấp, không kiểm tra thủ công.
+- Quy trình: MediaPipe FaceLandmarker (tạo mới cho mỗi ảnh) -> EAR trung bình hai mắt (`ai/features/ear.py`). Dự đoán "nhắm" khi EAR < ngưỡng.
+- Mã: `scripts/eval_eye_state.py`; số liệu thô: `docs/experiments/eye_state_synthetic.json`.
+
+### 9.2 Kết quả
+| Chỉ số | Giá trị |
+|---|---|
+| Tỉ lệ MediaPipe thấy mặt | 100% (2.000/2.000) cả hai nhãn |
+| AUC (EAR mở > EAR nhắm) | **0,997** |
+| Ngưỡng cố định 0,20 | P 1,000 · R 0,970 · F1 **0,985** · báo giả (FPR) 0,000 (TP 1.067, FP 0, FN 33, TN 900) |
+| Ngưỡng tốt nhất theo F1 (0,215) | P 0,999 · R 0,978 · F1 0,989 · FPR 0,001 |
+| EAR mắt mở: phân vị 1 / 5 / 25 / 50 / 75 | 0,239 / 0,263 / 0,309 / 0,346 / 0,397 |
+| EAR mắt nhắm: phân vị 50 / 75 / 95 / 99 | 0,042 / 0,079 / 0,166 / 0,263 |
+| Mắt mở có EAR < 0,20 | 0,0% |
+| Mắt nhắm có EAR ≥ 0,20 | 3,0% (33/1.100) |
+
+### 9.3 Nhận xét và hạn chế (ghi rõ trong báo cáo)
+- Công thức EAR + MediaPipe phân tách mắt nhắm/mở gần như hoàn hảo trên ảnh chính diện chất lượng cao; ngưỡng 0,20 gần tối ưu (chỉ cách ngưỡng tốt nhất 0,015).
+- **Kết quả này có khả năng lạc quan**: ảnh sạch, chính diện, mắt mở rõ (mắt mở thấp nhất ở phân vị 1 vẫn là EAR 0,239), không mô phỏng
+  mắt nhỏ, kính, thiếu sáng, đầu nghiêng, chớp mắt, hay mờ chuyển động.
+- **Không kiểm chứng được ngưỡng cá nhân hóa**: ở thí nghiệm này không có ảnh mắt mở nào có EAR sát 0,20 (khác với ảnh mẫu MediaPipe có EAR mắt mở 0,207),
+  và mỗi ảnh là một người nên không có hiệu chuẩn theo người. Lập luận cho ngưỡng cá nhân hóa vẫn chỉ dựa trên một ảnh mẫu.
+- Mắt nhắm mà EAR ≥ 0,20 (3%): chưa phân tích nguyên nhân (nhắm hờ, mi mắt vẽ, góc nhìn); cần xem thủ công mẫu lỗi.
+- Đo trên ảnh tĩnh, chưa đo độ trễ phát hiện (cần video + FSM) hay tỉ lệ báo giả khi chớp mắt bình thường.
