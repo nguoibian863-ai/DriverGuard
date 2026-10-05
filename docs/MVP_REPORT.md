@@ -68,10 +68,24 @@ Bộ dữ liệu là ảnh đời thường, **không phải trong xe**; điện
 
 *Hộp lớn: chiếm từ 2% diện tích ảnh, gần với điện thoại cầm trước camera (n = 68).
 
+**Đo thêm các cỡ lớn hơn của YOLO26** (imgsz 640, conf 0,25, cùng bộ dữ liệu):
+
+| Model | Tham số | Precision | Recall | F1 | Recall hộp lớn* | Báo giả/ảnh | ms/ảnh | VRAM đỉnh |
+|---|---|---|---|---|---|---|---|---|
+| yolo26n | 2,6M | 0,84 | 0,34 | 0,48 | 0,68 | 0,005 | 12 | 65 MiB |
+| yolo26s | 10,0M | 0,78 | 0,54 | 0,64 | 0,81 | 0,005 | 21 | 111 MiB |
+| yolo26m | 21,9M | 0,80 | 0,61 | 0,70 | 0,84 | 0,003 | 24 | 229 MiB |
+| yolo26l | 26,3M | 0,83 | 0,65 | 0,73 | 0,81 | 0,007 | 35 | 337 MiB |
+| **yolo26x** | 59,0M | 0,84 | **0,69** | **0,76** | **0,85** | 0,007 | 54 | 394 MiB |
+
+(yolo26x ở imgsz 960: F1 0,76, 115 ms, 563 MiB, không tốt hơn 640 nên không dùng.)
+
 **Kết luận và thay đổi:**
-- Hai model ngang nhau về Recall; `yolo26n` có Precision cao hơn ở 5/6 cấu hình, chậm hơn khoảng 1 ms. Số mẫu nhỏ nên chênh lệch chưa có ý nghĩa thống kê chắc chắn.
-- **Cấu hình cũ (`imgsz=320`) bỏ sót nhiều**: Recall chỉ 0,20 (0,51 với hộp lớn). Tăng lên 640 cho Recall 0,33 (0,65) mà thời gian gần như không đổi.
-- Mặc định mới: `yolo26n.pt`, `imgsz=640`, `conf=0,25`. Đổi model bằng biến môi trường `DRIVERGUARD_YOLO_MODEL`.
+- Cỡ model quyết định nhiều hơn thế hệ model: yolo26x phát hiện gấp đôi yolo26n (Recall 0,69 so với 0,34) với tỉ lệ báo giả tương đương.
+- **Mặc định mới: `yolo26x.pt`, `imgsz=640`, `conf=0,25`.** Chạy trong worker thật: điện thoại vẫn đạt 5 FPS (trễ 63 ms), luồng khuôn mặt không bị chậm. Dùng khoảng 400 MiB VRAM trên card 4 GB.
+- Cấu hình cũ (yolo11n, imgsz 320) chỉ có Recall 0,20.
+- **Khi triển khai trên thiết bị yếu (Jetson, mini PC không GPU):** dùng `yolo26m` (F1 0,70, 24 ms) hoặc `yolo26s` bằng biến môi trường `DRIVERGUARD_YOLO_MODEL`. Khi đó cần đo lại tốc độ trên chính thiết bị.
+- Trọng số tự tải vào `models/` lần chạy đầu (yolo26x nặng 119 MB, đã bị `.gitignore`).
 - Vẫn cần thử với điện thoại thật trong xe; nên fine-tune trên dữ liệu State Farm nếu chưa đủ.
 
 ## 4. Giới hạn đã biết (chưa làm hoặc chưa chắc)

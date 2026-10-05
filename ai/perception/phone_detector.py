@@ -8,7 +8,7 @@ import numpy as np
 PHONE_CLASS_ID = 67  # 'cell phone' trong COCO
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
 # Đổi model bằng biến môi trường, ví dụ DRIVERGUARD_YOLO_MODEL=yolo26n.pt
-WEIGHTS = MODELS_DIR / os.getenv("DRIVERGUARD_YOLO_MODEL", "yolo26n.pt")
+WEIGHTS = MODELS_DIR / os.getenv("DRIVERGUARD_YOLO_MODEL", "yolo26x.pt")
 
 Box = tuple[int, int, int, int]
 
@@ -38,8 +38,12 @@ class PhoneDetector:
         self.device = 0 if torch.cuda.is_available() else "cpu"
         self.conf = conf
         weights.parent.mkdir(parents=True, exist_ok=True)
-        # Nếu chưa có file trong models/, ultralytics tự tải theo tên về thư mục cache
-        self.model = YOLO(str(weights) if weights.exists() else weights.name)
+        if not weights.exists():
+            # Tải đúng vào models/ (không rải file .pt ra thư mục đang chạy)
+            from ultralytics.utils.downloads import attempt_download_asset
+
+            attempt_download_asset(str(weights))
+        self.model = YOLO(str(weights))
 
     def detect(self, bgr: np.ndarray) -> list[Box]:
         results = self.model.predict(
