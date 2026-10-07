@@ -368,3 +368,86 @@ Phát lại 823 bản tin của phiên thử qua pipeline mới (hiệu chuẩn 
 - Xuất hiện `CHRONIC_FATIGUE` ở giữa phiên: PERCLOS đạt ≥ 25% trong cửa sổ ngắn do kịch bản nhắm mắt nhiều lần; hành vi hợp lý với kịch bản nhưng chưa đánh giá trên lái xe thực.
 - Điện thoại vẫn chưa kết luận (phát lại không có thông tin vùng ROI).
 - Phát lại dùng roll = 0 vì phiên không lưu roll (không ảnh hưởng logic hiện tại).
+
+## 13. Thí nghiệm 6 (EXP-006): phiên thử người thật lần 2, chấm tự động
+
+### 13.1 Thiết lập
+- Cùng người tham gia như thí nghiệm 5 (n = 1), camera laptop, trong nhà. Cấu hình sau AI-001 (`mar_threshold` 0,40; hệ số EAR 0,55 kẹp [0,10; 0,20]). **Không chỉnh tham số trước phiên.**
+- `scripts/live_session.py` (tự hiệu chuẩn 4 giây trước phiên), 22 pha, 101 giây, **1.164 bản tin** trong khoảng pha. Số liệu thô: `docs/experiments/live_session_2.json`; kết quả chấm: `live_session_2.csv` (`scripts/score_live_session.py`).
+- Hiệu năng: FPS camera/mặt **30** (thí nghiệm 5: 15), YOLO 5 FPS.
+
+### 13.2 Kết quả
+Phát hiện đúng **4/9 pha cần cảnh báo**, **báo giả 0**, độ trễ trung vị 2,97 giây (chấm theo mốc hướng dẫn).
+
+| Pha | Kết quả | Số đo liên quan |
+|---|---|---|
+| nhắm mắt | đúng, trễ 3,24 s | EAR nhỏ nhất 0,03 |
+| quay phải (lần 1) | đúng | mất mặt, tính là LOOKING_AWAY |
+| điện thoại trước ngực | đúng, trễ 2,96 s | |
+| điện thoại ngang mặt | đúng, trễ 2,99 s | |
+| quay trái (lần 1) | sót | \|yaw tương đối\| tối đa 60° |
+| quay trái (lần 2) | sót | tối đa 37° |
+| quay phải (lần 2) | sót | tối đa 39°, thấy mặt 52% |
+| cúi đầu | sót | pitch tối đa 23°, thấy mặt 38% |
+| ngáp | sót | **MAR tối đa 0,32** (< 0,40) |
+Chớp mắt, nói chuyện, cười và các pha nghỉ: không báo nhầm.
+
+### 13.3 Phân tích
+1. **Ngưỡng MAR 0,40 không tổng quát**: ngáp ở thí nghiệm 5 đạt MAR 0,5–0,66, lần này chỉ 0,32 (cùng người). Kết quả "đúng" ở mục 12.2 là lạc quan do chỉnh và chấm trên cùng dữ liệu.
+2. **Quay trái 60° bị sót không phải lỗi logic**: người thử bắt đầu quay sau mốc khoảng 1,7 giây, yaw chỉ vượt 30° trong khoảng 0,4 giây rồi mất mặt ở giây 3,8 (pha dài 4 giây). Cần pha dài hơn (≥ 6 giây) hoặc chấm theo hành vi thực, không theo mốc.
+3. **Mất mặt khi cúi/quay** vẫn là điểm yếu: cúi đầu mất mặt 62%, quay phải lần 2 mất 48%.
+4. **Điện thoại phát hiện 2/2** (thí nghiệm 5: không kết luận được). Chưa rõ nguyên nhân khác biệt; cần lặp lại.
+5. Báo giả 0 nhưng bỏ sót cao: hệ thống đang thiên về im lặng.
+
+### 13.4 Hạn chế
+n = 1, một lần chạy, mỗi pha 1–2 lần lặp; chấm theo mốc hướng dẫn nên độ trễ chỉ ước chừng; camera laptop góc từ trên; kịch bản diễn. Chưa chỉnh tham số sau lần này.
+
+## 14. Thí nghiệm 7 (EXP-007): phiên người thật lần 3, pha 7 giây, có dữ liệu pose
+
+### 14.1 Thiết lập
+- Cùng người tham gia (n = 1), camera laptop, trong nhà, hệ thống bản AI-001 + AI-002 với `use_pose_fallback` **tắt** (cảnh báo thật chạy như cũ; pose chỉ ghi dữ liệu). Không chỉnh tham số trước phiên.
+- `scripts/live_session.py`: các pha hành vi dài 7 giây, tổng 128 giây, **3.847 bản tin** (723 trong các pha chấm). FPS camera/mặt 30, pose 11 FPS (độ trễ 36 ms), điện thoại 6 FPS. Số liệu thô: `docs/experiments/live_session_3.json`, `live_session_3.csv`.
+
+### 14.2 Kết quả chấm
+| Cách chấm | Phát hiện đúng | Báo giả | Độ trễ trung vị |
+|---|---|---|---|
+| (a) theo mốc | **9/9** | 1 | 3,80 s |
+| (b) bỏ 2 giây đầu | **9/9** | 1 | 1,80 s |
+Mọi pha cần cảnh báo đều được phát hiện (nhắm mắt, quay trái x2, quay phải x2, cúi đầu, ngáp, điện thoại x2). Chớp mắt, nói chuyện, cười: không báo nhầm. Báo giả 1: pha nghỉ `rest9` (sau khi hạ điện thoại) có `LOOKING_AWAY`; chưa phân biệt được do người thử quay đầu thật hay báo nhầm. Quay trái lần 2 phát hiện rất sát (độ trễ 7,06 s, cờ chỉ 1,3% bản tin).
+
+### 14.3 Phân tích
+1. **EXP-006 (4/9) sót chủ yếu do thiết kế phiên**: cùng người, cùng hệ thống, chỉ kéo pha lên 7 giây thì 9/9. Không dùng EXP-006 để kết luận hệ thống yếu hơn thực tế.
+2. **Ngáp đạt lần này** (cờ 46%) dù ngưỡng MAR 0,40 không đổi; ở EXP-006 sót vì MAR chỉ 0,32. Hành vi ngáp giữa các lần diễn dao động; chưa kết luận về ngưỡng.
+3. **Pose có tín hiệu tốt khi mất mặt**: trong 4 pha quay trái/phải, MediaPipe mất mặt 28–56 bản tin/pha và pose thấy người ở **100%** số khung đó (181/181). `yaw_rel` của pose đạt 0,42–0,59 khi quay (ngưỡng tạm 0,35), và ở pha cúi đầu/nhìn thẳng chỉ dao động −0,04–0,03, tức tách rõ.
+4. **Phát lại với `--pose-fallback` không thay đổi số pha phát hiện** (đã 9/9 không cần pose); chỉ thêm cờ `looking_away` kéo dài sang pha nghỉ liền sau (rest2). Chưa đo độ trễ phát hiện theo từng cờ trong replay.
+5. Pha cúi đầu: MediaPipe thấy mặt 100% lần này (EXP-006: 38%), nên chưa kiểm tra được pose khi mất mặt lúc cúi.
+
+### 14.4 Hạn chế
+n = 1, một lần chạy, cùng người ở cả ba phiên; ngưỡng pose (0,35/0,30) chưa được chỉnh hay kiểm chứng độc lập (chỉ so với dữ liệu này); chưa có người thứ hai; camera laptop góc từ trên; chưa đo ca pose cứu được khi MediaPipe sót (vì chưa có ca sót); phát lại chưa có thông tin ROI điện thoại.
+
+## 15. Thí nghiệm 8 (EXP-008): pose fallback trên video công khai từ mạng (Codex viết script, Claude duyệt ảnh)
+
+### 15.1 Thiết lập
+- 4 video YouTube tải bằng `yt-dlp` (lưu `data/raw/web_videos/`, không đưa vào git): `FD5ctXyExqc` (camera hồng ngoại trong cabin, người đeo khẩu trang + kính, 317 s, 15 FPS), `VPnBwC1fOJY` (người đeo kính đen, có ngáp, 93 s), `lKIkpzwuaWs` (webcam, quay đầu, 43 s), `3psnER2oVUA` (nhiều người ghép cảnh, 587 s). Không có nhãn chuẩn.
+- `scripts/eval_video_pose.py`: phát lại đồng bộ (t = chỉ số khung / fps), cùng quan sát MediaPipe + YOLO pose đưa vào hai `DriverPipeline`: A `use_pose_fallback=False`, B `True`. Ngưỡng giữ nguyên. Đầu ra: `docs/experiments/web_video/` (CSV từng khung, `summary.json`, 81 ảnh mẫu).
+
+### 15.2 Kết quả
+| Video | Mất mặt sau hiệu chuẩn | Pose thấy người (cả video) | Pose baseline | Khung A≠B |
+|---|---|---|---|---|
+| FD5ctXyExqc (hồng ngoại, khẩu trang) | 656/4.679 (14,0%) | 380/4.739 (8,0%) | **không đặt được** | 11 |
+| VPnBwC1fOJY | 0 | 100% | có | 0 |
+| lKIkpzwuaWs | 0 | 96% | có | 0 |
+| 3psnER2oVUA (montage) | 65% | — | — | 9.685 (không có ý nghĩa) |
+
+### 15.3 Phân tích (đã duyệt ảnh mẫu)
+1. **Hai video webcam bình thường: MediaPipe không mất mặt, nên pose fallback không có cơ hội tác động.** Không chứng minh được có ích.
+2. **Video khó nhất (hồng ngoại, khẩu trang): YOLO pose chỉ thấy người 8% số khung** và trong 4 giây hiệu chuẩn không có mẫu pose nào, nên `pose_yaw_baseline` không bao giờ được đặt, `pose_yaw_rel` luôn rỗng và nhánh `pose_away/pose_down` không bao giờ chạy. Mô hình pose yếu trên ảnh hồng ngoại hoặc khi mặt bị che.
+3. **Cờ bật làm mất một phát hiện đúng.** Ở t≈313 s người quay hẳn nghiêng (nhìn qua ảnh mẫu là đúng LOOKING_AWAY): A (tắt) báo LOOKING_AWAY 11 khung, B (bật) báo không. Nguyên nhân từ mã: `held_away = recent_away and not (use_pose_fallback and pose_fresh)` (`ai/runtime/pipeline.py:175`) tắt cơ chế giữ cờ khi pose "tươi", dù pose chưa hiệu chuẩn nên không thay thế được.
+4. **Cúi đầu mất mặt bị báo `DRIVER_ABSENCE` ở cả A và B** (ví dụ t=43,2 s, người cúi, mặt vẫn trong khung): pose không cứu được, vì cúi sát camera thì không thấy vai.
+5. Video montage nhiều cảnh vô nghĩa cho phép đo này (pose thấy người khác trong cảnh).
+
+### 15.4 Kết luận và hạn chế
+Chưa có bằng chứng bật cờ có lợi; có bằng chứng bật cờ có hại ở một trường hợp. **Giữ `use_pose_fallback` TẮT.** Nếu muốn tiếp tục: (a) chỉ tắt `held_away` khi baseline pose đã có (sửa nhỏ, cần giao Codex); (b) cần video có MediaPipe mất mặt nhưng pose thấy người (quay nghiêng ánh sáng thường), hoặc thử weights pose khác cho ảnh hồng ngoại. Hạn chế: 3 video có nghĩa, không nhãn, một người mỗi video, nguồn quảng cáo/demo nên không chắc phản ánh điều kiện lái thật; số liệu mất mặt tính theo MediaPipe.
+
+### 14.5 Điều tra báo giả rest9 (bổ sung, Claude phân tích từ `live_session_3.json`)
+Báo giả `rest9` **không phải báo nhầm của hệ thống**: từ 1,4 s trước mốc `rest9` đến 0,75 s sau mốc, `relative_yaw` của MediaPipe giữ 44–49° (≥ ngưỡng 30°) trong 24 bản tin, và `yaw_rel` của pose độc lập cũng đạt 0,33 (cùng hướng). Người thử quay đầu thật khi hạ điện thoại; sự kiện LOOKING_AWAY phát lúc 0,57 s sau mốc. Đây là lỗi cách chấm (pha nghỉ bị gán nhãn "không có hành vi" trong lúc người thử còn đang quay). Số báo giả hiệu chỉnh: 0 trên EXP-007 nếu loại 2 giây đầu pha nghỉ liền sau pha hành vi (cách (b) đã gần đúng hướng này). Chưa sửa scorer.

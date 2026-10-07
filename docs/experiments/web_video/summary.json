@@ -1,0 +1,1072 @@
+{
+  "experiment": "EXP-008",
+  "evaluation": "AI-002 pose fallback; synchronous offline replay with t = frame_index / fps",
+  "pose_every_frames": 1,
+  "max_seconds": null,
+  "random_seed": 8002,
+  "videos": [
+    {
+      "video_id": "FD5ctXyExqc",
+      "source": "data/raw/web_videos/FD5ctXyExqc.mp4",
+      "source_frame_count": 4739,
+      "processed_frames": 4739,
+      "fps": 14.965,
+      "source_duration_s": 316.672,
+      "processed_duration_s": 316.672,
+      "truncated_by_max_seconds": false,
+      "calibration": {
+        "calibration_s_threshold": 4.0,
+        "completed_at_s_A": 4.009355,
+        "completed_at_s_B": 4.009355,
+        "eligible_when_both_calibrated": true
+      },
+      "main_statistics_after_both_calibrated": {
+        "eligible_frames": 4679,
+        "face_missing_frames": 656,
+        "face_missing_rate": 0.140201,
+        "pose_fresh_person_frames_when_face_missing": 139,
+        "pose_fresh_person_rate_when_face_missing": 0.21189,
+        "pose_observation_frames_when_face_missing": 139,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 73,
+              "seconds": 4.878
+            },
+            "LOOKING_AWAY": {
+              "frames": 18,
+              "seconds": 1.203
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 11,
+              "seconds": 0.735
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 73,
+              "seconds": 4.878
+            },
+            "LOOKING_AWAY": {
+              "frames": 7,
+              "seconds": 0.468
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 11,
+              "seconds": 0.735
+            }
+          }
+        },
+        "a_b_different_frames": 11,
+        "a_b_different_rate": 0.002351,
+        "different_frames_by_flag": {
+          "LOOKING_AWAY": 11
+        },
+        "events_by_type": {
+          "A": {
+            "DRIVER_ABSENCE": 1,
+            "LOOKING_AWAY": 2
+          },
+          "B": {
+            "DRIVER_ABSENCE": 1,
+            "LOOKING_AWAY": 2
+          }
+        }
+      },
+      "pre_calibration_excluded_from_main_statistics": {
+        "frames": 60,
+        "seconds": 4.009,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          }
+        }
+      },
+      "driver_absence_source": "DriverPipeline.update không xuất cờ này trong telemetry; lấy AlertState ACTIVE từ absence_fsm.state sau update.",
+      "pose_every_frames": 1,
+      "samples": {
+        "saved_count": 21,
+        "by_category": {
+          "a_b_different": 1,
+          "face_missing_pose_missing": 10,
+          "random_control": 10
+        },
+        "files": [
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t6.7_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 6.682
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t10.0_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 9.957
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t22.9_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 22.92
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t43.2_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 43.234
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t60.7_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 60.742
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t73.9_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 73.906
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t83.1_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 83.06
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t91.3_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 91.346
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t97.7_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 97.695
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t99.9_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 99.9
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t130.4_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 130.371
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t134.4_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 134.447
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t135.5_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 135.516
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t145.7_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 145.74
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t171.1_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 171.066
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t188.2_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 188.172
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t236.2_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 236.218
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t244.8_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 244.771
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t247.2_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 247.244
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t311.5_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 311.46
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/FD5ctXyExqc/FD5ctXyExqc_t313.1_LOOKING_AWAY-NONE.jpg",
+            "category": "a_b_different",
+            "t": 313.064
+          }
+        ]
+      },
+      "notes": [
+        "Video không có nhãn chuẩn; các số liệu là số đo telemetry, không xác nhận đúng/sai của cờ.",
+        "Thống kê chính chỉ gồm khung sau khi cả A và B đã hiệu chuẩn; CSV chứa cả khung trước đó."
+      ]
+    },
+    {
+      "video_id": "VPnBwC1fOJY",
+      "source": "data/raw/web_videos/VPnBwC1fOJY.mp4",
+      "source_frame_count": 1395,
+      "processed_frames": 1395,
+      "fps": 15.0,
+      "source_duration_s": 93.0,
+      "processed_duration_s": 93.0,
+      "truncated_by_max_seconds": false,
+      "calibration": {
+        "calibration_s_threshold": 4.0,
+        "completed_at_s_A": 4.0,
+        "completed_at_s_B": 4.0,
+        "eligible_when_both_calibrated": true
+      },
+      "main_statistics_after_both_calibrated": {
+        "eligible_frames": 1335,
+        "face_missing_frames": 0,
+        "face_missing_rate": 0.0,
+        "pose_fresh_person_frames_when_face_missing": 0,
+        "pose_fresh_person_rate_when_face_missing": null,
+        "pose_observation_frames_when_face_missing": 0,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 120,
+              "seconds": 8.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 120,
+              "seconds": 8.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          }
+        },
+        "a_b_different_frames": 0,
+        "a_b_different_rate": 0.0,
+        "different_frames_by_flag": {},
+        "events_by_type": {
+          "A": {},
+          "B": {}
+        }
+      },
+      "pre_calibration_excluded_from_main_statistics": {
+        "frames": 60,
+        "seconds": 4.0,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          }
+        }
+      },
+      "driver_absence_source": "DriverPipeline.update không xuất cờ này trong telemetry; lấy AlertState ACTIVE từ absence_fsm.state sau update.",
+      "pose_every_frames": 1,
+      "samples": {
+        "saved_count": 10,
+        "by_category": {
+          "random_control": 10
+        },
+        "files": [
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t6.8_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 6.8
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t15.5_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 15.533
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t22.9_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 22.933
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t32.0_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 32.0
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t33.4_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 33.4
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t63.3_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 63.333
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t65.8_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 65.8
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t84.2_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 84.2
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t86.5_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 86.467
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/VPnBwC1fOJY/VPnBwC1fOJY_t91.6_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 91.6
+          }
+        ]
+      },
+      "notes": [
+        "Video không có nhãn chuẩn; các số liệu là số đo telemetry, không xác nhận đúng/sai của cờ.",
+        "Thống kê chính chỉ gồm khung sau khi cả A và B đã hiệu chuẩn; CSV chứa cả khung trước đó."
+      ]
+    },
+    {
+      "video_id": "lKIkpzwuaWs",
+      "source": "data/raw/web_videos/lKIkpzwuaWs.mp4",
+      "source_frame_count": 1073,
+      "processed_frames": 1073,
+      "fps": 25.0,
+      "source_duration_s": 42.92,
+      "processed_duration_s": 42.92,
+      "truncated_by_max_seconds": false,
+      "calibration": {
+        "calibration_s_threshold": 4.0,
+        "completed_at_s_A": 6.44,
+        "completed_at_s_B": 6.44,
+        "eligible_when_both_calibrated": true
+      },
+      "main_statistics_after_both_calibrated": {
+        "eligible_frames": 912,
+        "face_missing_frames": 0,
+        "face_missing_rate": 0.0,
+        "pose_fresh_person_frames_when_face_missing": 0,
+        "pose_fresh_person_rate_when_face_missing": null,
+        "pose_observation_frames_when_face_missing": 0,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 163,
+              "seconds": 6.52
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 8,
+              "seconds": 0.32
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 163,
+              "seconds": 6.52
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 8,
+              "seconds": 0.32
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          }
+        },
+        "a_b_different_frames": 0,
+        "a_b_different_rate": 0.0,
+        "different_frames_by_flag": {},
+        "events_by_type": {
+          "A": {
+            "CHRONIC_FATIGUE": 1,
+            "DROWSINESS_ACUTE": 1,
+            "LOOKING_AWAY": 1
+          },
+          "B": {
+            "CHRONIC_FATIGUE": 1,
+            "DROWSINESS_ACUTE": 1,
+            "LOOKING_AWAY": 1
+          }
+        }
+      },
+      "pre_calibration_excluded_from_main_statistics": {
+        "frames": 161,
+        "seconds": 6.44,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 0,
+              "seconds": 0.0
+            }
+          }
+        }
+      },
+      "driver_absence_source": "DriverPipeline.update không xuất cờ này trong telemetry; lấy AlertState ACTIVE từ absence_fsm.state sau update.",
+      "pose_every_frames": 1,
+      "samples": {
+        "saved_count": 10,
+        "by_category": {
+          "random_control": 10
+        },
+        "files": [
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t7.6_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 7.64
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t9.0_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 9.0
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t12.0_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 11.96
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t14.1_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 14.12
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t16.8_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 16.84
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t23.0_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 23.0
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t24.7_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 24.72
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t26.3_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 26.32
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t30.7_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 30.72
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/lKIkpzwuaWs/lKIkpzwuaWs_t41.7_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 41.68
+          }
+        ]
+      },
+      "notes": [
+        "Video không có nhãn chuẩn; các số liệu là số đo telemetry, không xác nhận đúng/sai của cờ.",
+        "Thống kê chính chỉ gồm khung sau khi cả A và B đã hiệu chuẩn; CSV chứa cả khung trước đó."
+      ]
+    },
+    {
+      "video_id": "3psnER2oVUA",
+      "source": "data/raw/web_videos/3psnER2oVUA.mp4",
+      "source_frame_count": 17605,
+      "processed_frames": 17605,
+      "fps": 29.97003,
+      "source_duration_s": 587.42,
+      "processed_duration_s": 587.42,
+      "truncated_by_max_seconds": false,
+      "calibration": {
+        "calibration_s_threshold": 4.0,
+        "completed_at_s_A": 26.593233,
+        "completed_at_s_B": 26.593233,
+        "eligible_when_both_calibrated": true
+      },
+      "main_statistics_after_both_calibrated": {
+        "eligible_frames": 16808,
+        "face_missing_frames": 10923,
+        "face_missing_rate": 0.649869,
+        "pose_fresh_person_frames_when_face_missing": 8975,
+        "pose_fresh_person_rate_when_face_missing": 0.821661,
+        "pose_observation_frames_when_face_missing": 8975,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 1295,
+              "seconds": 43.21
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 10500,
+              "seconds": 350.35
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 1201,
+              "seconds": 40.073
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 909,
+              "seconds": 30.33
+            }
+          }
+        },
+        "a_b_different_frames": 9685,
+        "a_b_different_rate": 0.576214,
+        "different_frames_by_flag": {
+          "LOOKING_AWAY": 94,
+          "DRIVER_ABSENCE": 9591
+        },
+        "events_by_type": {
+          "A": {
+            "DRIVER_ABSENCE": 2,
+            "LOOKING_AWAY": 6
+          },
+          "B": {
+            "DRIVER_ABSENCE": 3,
+            "LOOKING_AWAY": 6
+          }
+        }
+      },
+      "pre_calibration_excluded_from_main_statistics": {
+        "frames": 797,
+        "seconds": 26.593,
+        "flags": {
+          "A": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 527,
+              "seconds": 17.584
+            }
+          },
+          "B": {
+            "DROWSINESS_ACUTE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "YAWNING": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_AWAY": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "LOOKING_DOWN": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "PHONE_USAGE": {
+              "frames": 0,
+              "seconds": 0.0
+            },
+            "DRIVER_ABSENCE": {
+              "frames": 521,
+              "seconds": 17.384
+            }
+          }
+        }
+      },
+      "driver_absence_source": "DriverPipeline.update không xuất cờ này trong telemetry; lấy AlertState ACTIVE từ absence_fsm.state sau update.",
+      "pose_every_frames": 1,
+      "samples": {
+        "saved_count": 40,
+        "by_category": {
+          "a_b_different": 20,
+          "face_missing_pose_missing": 10,
+          "random_control": 10
+        },
+        "files": [
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t60.9_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 60.928
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t67.3_LOOKING_AWAY-LOOKING_AWAY.jpg",
+            "category": "random_control",
+            "t": 67.334
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t160.4_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 160.427
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t178.3_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 178.345
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t185.9_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 185.919
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t192.6_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 192.626
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t212.3_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 212.312
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t225.0_DRIVER_ABSENCE-NONE.jpg",
+            "category": "random_control",
+            "t": 224.958
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t237.0_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 237.003
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t241.4_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 241.408
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t252.7_DRIVER_ABSENCE-NONE.jpg",
+            "category": "random_control",
+            "t": 252.719
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t260.8_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 260.827
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t285.6_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 285.585
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t296.0_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 295.996
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t307.5_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 307.474
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t309.5_DRIVER_ABSENCE-NONE.jpg",
+            "category": "random_control",
+            "t": 309.476
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t312.1_DRIVER_ABSENCE-NONE.jpg",
+            "category": "random_control",
+            "t": 312.078
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t313.8_DRIVER_ABSENCE-NONE.jpg",
+            "category": "random_control",
+            "t": 313.78
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t350.7_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 350.65
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t356.4_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 356.423
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t359.1_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 359.059
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t361.0_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 361.027
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t365.2_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 365.198
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t371.6_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 371.605
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t375.3_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 375.342
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t379.8_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 379.813
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t395.2_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 395.228
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t416.0_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 415.982
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t425.6_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 425.625
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t451.7_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 451.651
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t457.6_DRIVER_ABSENCE-NONE.jpg",
+            "category": "a_b_different",
+            "t": 457.557
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t471.1_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 471.137
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t532.5_NONE-NONE.jpg",
+            "category": "random_control",
+            "t": 532.532
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t554.4_NONE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 554.354
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t558.5_DRIVER_ABSENCE-NONE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 558.525
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t560.4_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 560.393
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t567.9_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 567.901
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t571.1_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "random_control",
+            "t": 571.071
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t575.9_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "random_control",
+            "t": 575.909
+          },
+          {
+            "file": "D:/Dự Án Cá Nhân/DriverGuard_Documentation/docs/experiments/web_video/frames/3psnER2oVUA/3psnER2oVUA_t581.5_DRIVER_ABSENCE-DRIVER_ABSENCE.jpg",
+            "category": "face_missing_pose_missing",
+            "t": 581.548
+          }
+        ]
+      },
+      "notes": [
+        "Video không có nhãn chuẩn; các số liệu là số đo telemetry, không xác nhận đúng/sai của cờ.",
+        "Thống kê chính chỉ gồm khung sau khi cả A và B đã hiệu chuẩn; CSV chứa cả khung trước đó.",
+        "Clip montage nhi?u c?nh; c?c s? ?o t?ng h?p tr?n to?n clip c? th? tr?n nhi?u ng??i/c?nh v? kh?ng n?n quy k?t cho m?t t?i x? hay m?t c?nh c? th?."
+      ]
+    }
+  ]
+}

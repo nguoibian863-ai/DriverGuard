@@ -1,0 +1,24 @@
+﻿pha,loai_pha,so_ban_tin,phat_hien_dung,do_tre_s,ti_le_co_pct,thay_mat_pct,bao_gia,tre_chuyen_pha
+baseline,không báo,117,,,,100.000,0,0
+blink,không báo,93,,,,100.000,0,0
+eyes_closed (1),có cảnh báo,46,có,3.236,21.739,100.000,0,0
+rest1,không báo,47,,,,100.000,0,0
+look_left (1),có cảnh báo,48,không,,0.000,89.583,0,0
+rest2,không báo,35,,,,65.714,0,0
+look_left (2),có cảnh báo,47,không,,0.000,80.851,0,0
+rest7,không báo,35,,,,0.000,0,1
+look_right (1),có cảnh báo,45,có,0.089,80.000,33.333,0,0
+rest3,không báo,33,,,,51.515,0,0
+look_right (2),có cảnh báo,48,không,,0.000,52.083,0,0
+rest8,không báo,36,,,,100.000,0,0
+look_down (1),có cảnh báo,47,không,,0.000,38.298,0,0
+rest4,không báo,46,,,,89.130,0,0
+yawn (1),có cảnh báo,44,không,,0.000,77.273,0,0
+rest5,không báo,37,,,,94.595,0,0
+talk,không báo,92,,,,100.000,0,0
+smile,không báo,58,,,,100.000,0,0
+rest6,không báo,35,,,,100.000,0,0
+phone (1),có cảnh báo,70,có,2.956,45.714,100.000,0,0
+rest9,không báo,34,,,,100.000,0,0
+phone_near_face (1),có cảnh báo,71,có,2.994,50.704,63.380,0,0
+TỔNG,tóm tắt,466,4/9,2.975,24.464,71.674,0,1
