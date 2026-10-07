@@ -432,7 +432,7 @@ n = 1, một lần chạy, cùng người ở cả ba phiên; ngưỡng pose (0,
 - `scripts/eval_video_pose.py`: phát lại đồng bộ (t = chỉ số khung / fps), cùng quan sát MediaPipe + YOLO pose đưa vào hai `DriverPipeline`: A `use_pose_fallback=False`, B `True`. Ngưỡng giữ nguyên. Đầu ra: `docs/experiments/web_video/` (CSV từng khung, `summary.json`, 81 ảnh mẫu).
 
 ### 15.2 Kết quả
-| Video | Mất mặt sau hiệu chuẩn | Pose thấy người (cả video) | Pose baseline | Khung A≠B |
+| Video | Mất mặt sau hiệu chuẩn | Pose dùng được (đủ mũi + 2 vai, cả video) | Pose baseline | Khung A≠B |
 |---|---|---|---|---|
 | FD5ctXyExqc (hồng ngoại, khẩu trang) | 656/4.679 (14,0%) | 380/4.739 (8,0%) | **không đặt được** | 11 |
 | VPnBwC1fOJY | 0 | 100% | có | 0 |
@@ -451,3 +451,70 @@ Chưa có bằng chứng bật cờ có lợi; có bằng chứng bật cờ có
 
 ### 14.5 Điều tra báo giả rest9 (bổ sung, Claude phân tích từ `live_session_3.json`)
 Báo giả `rest9` **không phải báo nhầm của hệ thống**: từ 1,4 s trước mốc `rest9` đến 0,75 s sau mốc, `relative_yaw` của MediaPipe giữ 44–49° (≥ ngưỡng 30°) trong 24 bản tin, và `yaw_rel` của pose độc lập cũng đạt 0,33 (cùng hướng). Người thử quay đầu thật khi hạ điện thoại; sự kiện LOOKING_AWAY phát lúc 0,57 s sau mốc. Đây là lỗi cách chấm (pha nghỉ bị gán nhãn "không có hành vi" trong lúc người thử còn đang quay). Số báo giả hiệu chỉnh: 0 trên EXP-007 nếu loại 2 giây đầu pha nghỉ liền sau pha hành vi (cách (b) đã gần đúng hướng này). Chưa sửa scorer.
+
+
+## 16. Thí nghiệm 9 (EXP-009): weights và tiền xử lý pose trên ảnh hồng ngoại (Codex viết, Claude duyệt)
+Video FD5ctXyExqc, YOLO chạy mỗi 2 khung (2.370 khung đo, 330 khung MediaPipe mất mặt). Chỉ so được `yolo26m-pose` vì `yolo26l/x` và `yolo11m/x` không tải được (proxy chặn GitHub).
+
+| Tiền xử lý | Conf | Có người (cả clip / khung mất mặt) | Feature hợp lệ (cả clip / khung mất mặt) | ms/khung |
+|---|---:|---|---|---:|
+| none (hiện tại) | 0,25 | 95,1% / 82,1% | 8,4% / 22,4% | 34,0 |
+| none | 0,10 | 98,0% / 91,2% | 8,5% / 23,6% | 39,3 |
+| CLAHE | 0,25 | 98,4% / 88,2% | 13,5% / 25,5% | 37,4 |
+| CLAHE | 0,10 | 99,2% / 94,2% | **13,4% / 26,1%** | 33,7 |
+| gamma 0,6 | 0,25 | 97,7% / 86,4% | 11,3% / 25,2% | 31,8 |
+| gamma 0,6 | 0,10 | 99,3% / 95,5% | 10,9% / 24,5% | 33,8 |
+
+VRAM đỉnh 174 MiB mọi cấu hình. Kiểm chéo: VP 100%; lK baseline 96,3% (39,4% trong khung mất mặt), CLAHE conf 0,10 đạt 100%/100%. **Kết luận:** CLAHE giúp nhưng chỉ nâng feature hợp lệ từ 8% lên 13% ở ca hồng ngoại + khẩu trang; vấn đề nằm ở độ tin cậy mũi/vai, không phải ở việc phát hiện người. Chưa đủ để cứu ca này. Hạn chế: không nhãn, một video khó, chỉ một weights.
+
+## 17. Thí nghiệm 10 (EXP-010): hướng đầu trên tập công khai Pointing'04 (Codex viết, Claude duyệt)
+
+### 17.1 Dữ liệu
+`StevenLe456/head-pose` (HuggingFace) = Pointing'04: 13.950 ảnh 384×288, 15 người, nền trơn, nhãn [tilt, pan] mỗi 15° trong [-90°, 90°]. Là ảnh lab cận mặt, **không phải cabin**. Tilt dương = hướng lên (tương quan −0,91 với pitch MediaPipe). `scripts/eval_headpose_dataset.py`, đầu ra `docs/experiments/headpose/`.
+
+### 17.2 Kết quả
+- MediaPipe thấy mặt 73,5%; pose có feature hợp lệ **chỉ 32,3%** (vai bị cắt khỏi khung); cả hai mất 16,8%, tập trung ở |pan| ≥ 75° (31–42%).
+- Spearman pose `yaw_proxy` với pan: −0,948 (tín hiệu tốt khi có). Sai số "71°" của MediaPipe là do khác quy ước dấu yaw (sai số ≈ |pan| + |yaw|), chỉ |yaw| dùng trong pipeline nên không ảnh hưởng.
+- LOOKING_AWAY, nhãn |pan| ≥ 30° (precision/recall/F1/FPR): A (MediaPipe) 1,00/0,462/0,632/0,000; B (+pose khi mất mặt, ngưỡng 0,35) 1,00/0,530/0,692/0,0003. Nhãn ≥ 45°: A F1 0,704, B F1 0,770.
+- Quét `pose_yaw_ratio` (B, F1 ở 30°/45°): 0,20 → 0,718/0,794; 0,25 → 0,712/0,791; 0,30 → 0,704/0,783; 0,35 → 0,692/0,770; 0,40 → 0,674/0,751; 0,50 → 0,638/0,711. FPR của B với nhãn 30° ≤ 0,0006 ở mọi ngưỡng (0,2: 0,00058; ≥ 0,4: 0); với nhãn 45° FPR ≈ 0,038 ở 0,2 (A không pose: 0,033) do ảnh pan 30–45° bị tính là âm (chi tiết `summary.json`).
+- LOOKING_DOWN (tilt ≤ −30°): A recall 0,100, B 0,120; pose-only 0,052. Cúi đầu gần như không bắt được trên tập này.
+
+### 17.3 Phân tích
+1. Pose có ích thật nhưng khiêm tốn: +7 điểm recall (0,462 → 0,530) cho LOOKING_AWAY ở ngưỡng hiện tại, FPR không đổi đáng kể. Hạ `pose_yaw_ratio` xuống 0,2–0,25 tốt hơn trên tập này (F1 B 0,69 → 0,72).
+2. Giới hạn chính là độ phủ: pose chỉ dùng được ở 1/3 ảnh vì thiếu vai; trong cabin có cả vai nên có thể tốt hơn, nhưng video hồng ngoại (EXP-009) vẫn kém.
+3. Ngưỡng 0,2 chỉ tối ưu trên ảnh cận mặt, baseline pose lấy từ 37 ảnh; chưa nên áp dụng cho camera cabin khi chưa kiểm trên dữ liệu cabin.
+4. Cúi đầu (LOOKING_DOWN) yếu ở cả hai hệ thống trên tập này.
+
+### 17.4 Hạn chế
+Ảnh tĩnh lab, một camera, nền trơn; không có thời gian/ cơ chế giữ cờ; không có id người; tracker MediaPipe ở VIDEO mode với timestamp giả có thể mang trạng thái giữa ảnh.
+
+## 18. Thí nghiệm 11 (EXP-011): đo khả thi "tay rời vô lăng" bằng cổ tay YOLO pose (Codex viết, Claude duyệt ảnh mẫu)
+
+### 18.1 Thiết lập
+Ý tưởng của sếp: dùng tay để phát hiện cả hai tay rời vô lăng. `scripts/eval_hands_wheel.py`: cổ tay (COCO 9, 10, conf ≥ 0,3) chuẩn hóa theo thân người (gốc = trung điểm vai, đơn vị = khoảng cách vai–hông hoặc bề rộng vai); "tâm vô lăng" = trung vị vị trí cổ tay của một nửa ảnh c0 (lái an toàn); tay "rời" nếu cách tâm > R. Dữ liệu: State Farm 1.500 ảnh (150/lớp, camera **bên hông**, tải lại bằng `fetch_state_farm_sample.py`), cộng video ProVision `Vuy8SRr1hVA` (13,8 s, tay trên vô lăng, nhìn nghiêng). **Không có nhãn trực tiếp tay trên/rời vô lăng**; nhãn gần đúng: dương = c1–c8 (thường ≥ 1 tay rời), âm = nửa kiểm tra c0 (75 ảnh). Đầu ra: `docs/experiments/hands_wheel/`; 40 ảnh mẫu lưu ngoài git.
+
+### 18.2 Kết quả (pose conf 0,25, wrist conf 0,30, chuẩn hóa dự phòng; mỗi ô "≥ 1 tay rời / cả hai / không rõ")
+| Lớp | Cổ tay thấy | R=0,5 | R=0,8 | R=1,0 |
+|---|---:|---|---|---|
+| c0 an toàn (n=75) | 100% | 26,7 / 4,0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 |
+| c1 nhắn tin (P) | 100% | 96,0 / 8,0 / 0 | 20,0 / 0 / 0,7 | 0 / 0 / 0 |
+| c2 gọi (P) | 100% | 100 / 8,0 / 0 | 99,3 / 0 / 0 | 50,7 / 0 / 0 |
+| c3 nhắn tin (T) | 99,7% | 73,3 / 24,0 / 0,7 | 0,7 / 0 / 0,7 | 0,7 / 0 / 0,7 |
+| c4 gọi (T) | 99,7% | 98,7 / 32,7 / 0,7 | 93,3 / 0 / 0,7 | 6,7 / 0 / 0,7 |
+| c5 radio | 98,0% | 94,7 / 14,0 / 4,0 | 54,0 / 0,7 / 4,0 | 15,3 / 0,7 / 4,0 |
+| c6 uống nước | 100% | 97,3 / 14,7 / 0 | 56,7 / 0 / 0 | 6,7 / 0 / 0 |
+| c7 với ra sau | 52,0% | 36,7 / 0,7 / 95,3 | 11,3 / 0,7 / 95,3 | 6,0 / 0 / 95,3 |
+| c8 trang điểm/tóc | 99,3% | 94,0 / 14,7 / 1,3 | 70,0 / 1,3 / 1,3 | 34,0 / 0,7 / 1,3 |
+| c9 nói với hành khách | 100% | 64,0 / 12,7 / 0 | 21,3 / 0 / 0 | 12,7 / 0 / 0 |
+
+"≥ 1 tay rời" so với nhãn gần đúng (dương c1–c8, âm c0 kiểm tra): R=0,8: F1 0,673, FPR 0/75, AUC 0,879; R=0,5: F1 0,918 (nhưng c0 bị báo 26,7%); R=1,0: F1 0,262. Chuẩn hóa theo bề rộng vai thay vì vai–hông: F1 0,970 nhưng FPR 69,3% (không dùng được). Video ProVision (R=0,8): với tâm lấy từ chính clip: 60% khung không tay rời, 4,1% một tay, 0,3% hai tay, 35,7% không rõ; với **tâm lấy từ c0: 64,3% khung bị báo hai tay rời** (đúng ra gần như 0).
+
+### 18.3 Phân tích (đã duyệt ảnh mẫu)
+1. Cổ tay thường nhìn thấy được (≈ 100% ở hầu hết lớp), nhưng **một tâm + bán kính không biểu diễn đúng vô lăng**: ảnh c0 hai tay đặt đúng trên vô lăng vẫn bị báo "rời" ở R=0,6 vì hai tay ở hai điểm khác nhau của vành vô lăng.
+2. **Không chuyển được giữa các camera/xe**: tâm học từ c0 State Farm áp vào video ProVision báo 64% khung "hai tay rời", dù tay vẫn trên vô lăng. Muốn dùng phải hiệu chuẩn vùng vô lăng theo từng lắp đặt (giống hiệu chuẩn tư thế trung tính) hoặc cho người dùng khoanh vùng.
+3. **Tay bị che/không thấy (c7: 95% "không rõ")** không được tính là rời; ảnh c8 (một tay trên vô lăng, tay kia đưa lên đầu, keypoint tay thứ hai mất) không bị báo gì dù đúng là có tay rời.
+4. **"Cả hai tay rời" không đo được**: không lớp nào trong State Farm đảm bảo cả hai tay rời, và số ảnh bị báo cả hai tay rời gần 0 từ R ≥ 0,8 (c3 24% và c4 33% ở R=0,5 là do R quá chặt, không phải cả hai tay rời thật).
+5. Camera laptop và camera hồng ngoại hiện có không thấy vô lăng; tính năng chỉ có nghĩa nếu lắp camera thấy tay và vô lăng.
+
+### 18.4 Kết luận và hạn chế
+**Chưa đưa vào pipeline.** Kỹ thuật đo được "tay xa vị trí lái" khi có hiệu chuẩn theo camera, nhưng chưa chứng minh được "cả hai tay rời" vì không có dữ liệu nhãn đúng. Cần: (a) tập/video có nhãn tay trên-rời vô lăng (ví dụ quay cabin thật, hoặc dữ liệu có nhãn hands-on-wheel như Drive&Act, DMD khi xin được quyền), (b) vùng vô lăng hiệu chuẩn theo từng camera. Hạn chế: nhãn gần đúng, split c0 không có id người (có thể rò rỉ cùng người giữa hai nửa), camera bên hông, một video sanity.
