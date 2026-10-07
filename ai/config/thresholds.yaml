@@ -12,3 +12,8 @@ calibration_s: 4.0
 perclos_window_s: 60.0
 yawn_window_s: 300.0
 pitch_sign: 1.0            # đổi thành -1.0 nếu cúi đầu cho pitch âm
+use_pose_fallback: false   # TẮT mặc định; fallback pose chỉ bổ sung hướng đầu khi mất mặt
+# Các giá trị pose_*_ratio bên dưới chỉ là tạm, CHƯA kiểm chứng; phải hiệu chuẩn lại từ dữ liệu phiên mới.
+pose_yaw_ratio: 0.35       # độ lệch ngang mũi / bề rộng vai
+pose_pitch_ratio: 0.30     # độ lệch dọc mũi / bề rộng vai (cúi đầu tăng)
+pose_max_age_s: 0.6        # bỏ qua kết quả suy luận pose cũ hơn mức này

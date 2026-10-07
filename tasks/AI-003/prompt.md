@@ -1,0 +1,8 @@
+Nhiệm vụ AI-003: sửa nhỏ lỗi pose fallback phát hiện ở EXP-008. Đọc AGENTS.md, MEMORY.md (mục EXP-008), docs/EXPERIMENT_LOG.md mục 15, ai/runtime/pipeline.py (khoảng dòng 160-185), ai/tests/test_pose.py.
+Lỗi: `held_away = recent_away and not (t.use_pose_fallback and pose_fresh)` tắt cơ chế giữ cờ LOOKING_AWAY khi cờ bật và pose còn mới, kể cả khi pose chưa có baseline (pose_yaw_rel là None) nên pose không thay thế được => mất phát hiện đúng (video FD5ctXyExqc t≈313 s).
+Được chạy: `.venv/Scripts/python.exe -m pytest ai -q` (đang 55 passed), py_compile. Chỉ được sửa: ai/runtime/pipeline.py, ai/tests/test_pose.py. KHÔNG sửa thứ khác, không đổi ngưỡng/yaml, không thêm dependency, không đổi hành vi khi use_pose_fallback=False (phải y hệt hiện tại).
+Việc cần làm:
+1. Sửa để chỉ bỏ giữ cờ khi pose đủ khả năng thay thế: held_away = recent_away and not pose_fallback_ready (pose_fallback_ready đã gồm use_pose_fallback, calibrated, pose_fresh và pose_yaw_rel/pitch_rel khác None). Khi pose có baseline và thấy người nhưng yaw nhỏ hơn ngưỡng thì vẫn bỏ giữ như hiện tại.
+2. Thêm test: cờ bật, pose tươi nhưng chưa có baseline pose, mất mặt ngay sau khi quay đầu (recent_away đúng) => vẫn LOOKING_AWAY như khi cờ tắt. Test cũ phải vẫn qua.
+3. Chạy lại: `.venv/Scripts/python.exe scripts/eval_video_pose.py --video data/raw/web_videos/FD5ctXyExqc.mp4 --out-dir <thư mục tạm ngoài docs/>` và báo số khung A≠B và LOOKING_AWAY của A/B (kỳ vọng B không còn kém A ở t≈313 s). Không ghi đè docs/experiments/web_video/.
+Báo cáo ngắn: diff chính, pytest, kết quả chạy FD, điểm chưa chắc. Ghi chú nếu thấy `pose_presence` (dòng 174) cũng chặn DRIVER_ABSENCE khi chưa có baseline, chỉ báo cáo, đừng sửa.

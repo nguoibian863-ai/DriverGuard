@@ -3,12 +3,14 @@
 import queue
 import threading
 import time
+from dataclasses import replace
 from typing import Any
 
 import cv2
 import numpy as np
 
 from ai.runtime.metrics import FpsCounter
+from ai.perception.pose_tracker import PoseObservation
 from ai.runtime.pipeline import DriverPipeline, FaceObservation, PhoneObservation
 from ai.runtime.thresholds import load_thresholds
 
@@ -29,12 +31,29 @@ def _put_latest(q: Any, item: Any) -> None:
                 pass
 
 
-def _draw_overlay(frame: np.ndarray, tele: dict, face_box: Any, phone_boxes: list) -> np.ndarray:
+def _draw_overlay(
+    frame: np.ndarray, tele: dict, face_box: Any, phone_boxes: list,
+    pose: PoseObservation | None = None,
+) -> np.ndarray:
     color = LEVEL_COLOR.get(tele["risk_level"], (200, 200, 200))
     if face_box:
         cv2.rectangle(frame, face_box[:2], face_box[2:], color, 2)
     for b in phone_boxes:
         cv2.rectangle(frame, b[:2], b[2:], (255, 160, 0), 2)
+    if pose is not None:
+        points = pose.keypoints
+        for index in (0, 3, 4, 5, 6):  # mũi, tai và hai vai
+            if index < len(points) and points[index][2] >= 0.3:
+                x, y = int(points[index][0]), int(points[index][1])
+                cv2.circle(frame, (x, y), 4, (0, 220, 255), -1)
+        if len(points) > 6 and points[5][2] >= 0.3 and points[6][2] >= 0.3:
+            cv2.line(
+                frame,
+                (int(points[5][0]), int(points[5][1])),
+                (int(points[6][0]), int(points[6][1])),
+                (0, 220, 255),
+                2,
+            )
     lines = [
         f"RISK {tele['risk_score']:.0f} {tele['risk_level']}",
         f"EAR {tele['ear']:.2f} MAR {tele['mar']:.2f}",
@@ -106,6 +125,46 @@ class _PhoneThread(threading.Thread):
             time.sleep(max(0.0, 0.2 - (time.time() - start)))
 
 
+class _PoseThread(threading.Thread):
+    """Chạy YOLO pose ở ~10 FPS, tách khỏi vòng lặp khuôn mặt."""
+
+    def __init__(self) -> None:
+        super().__init__(daemon=True)
+        self.frame: np.ndarray | None = None
+        self.observation: PoseObservation | None = None
+        self.updated = 0.0
+        self.latency_ms = 0
+        self.fps = FpsCounter()
+        self.running = True
+        self.error: str | None = None
+
+    def run(self) -> None:
+        try:
+            from ai.perception.pose_tracker import PoseTracker
+
+            tracker = PoseTracker()
+        except Exception as exc:  # model/weights/GPU lỗi: tắt pose, giữ face chạy
+            self.error = str(exc)
+            return
+        while self.running:
+            frame = self.frame
+            if frame is None:
+                time.sleep(0.02)
+                continue
+            start = time.time()
+            try:
+                observation = tracker.detect(frame)
+            except Exception as exc:
+                self.error = str(exc)
+                self.observation = None
+                return
+            self.updated = time.time()
+            self.observation = replace(observation, observed_at=self.updated) if observation is not None else None
+            self.latency_ms = int((self.updated - start) * 1000)
+            self.fps.tick(self.updated)
+            time.sleep(max(0.0, 0.1 - (time.time() - start)))
+
+
 def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) -> None:
     from ai.perception.face_landmarks import FaceLandmarkTracker
     from ai.perception.phone_detector import FaceBoxHold, is_usage_region
@@ -114,8 +173,11 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
     cmds = _Commands(command_q, pipeline)
     tracker = FaceLandmarkTracker()
     phone_thread = _PhoneThread()
+    pose_thread = _PoseThread()
     if config.get("enable_phone", True):
         phone_thread.start()
+    if config.get("enable_pose", True):
+        pose_thread.start()
     cam_fps, face_fps = FpsCounter(), FpsCounter()
     face_hold = FaceBoxHold(2.0)
     pending_events: list[dict] = []
@@ -130,8 +192,26 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             if not cap.isOpened():
-                _put_latest(telemetry_q, {"error": "camera_unavailable", "face_detected": False,
-                                          "events": [], "risk_level": "NORMAL", "risk_score": 0.0})
+                _put_latest(
+                    telemetry_q,
+                    {
+                        "error": "camera_unavailable",
+                        "face_detected": False,
+                        "events": [],
+                        "risk_level": "NORMAL",
+                        "risk_score": 0.0,
+                        "pose": {
+                            "person": False,
+                            "yaw": None,
+                            "pitch": None,
+                            "yaw_rel": None,
+                            "pitch_rel": None,
+                            "ear_asym": None,
+                        },
+                        "fps": {"pose": 0},
+                        "latency_ms": {"pose": 0},
+                    },
+                )
                 time.sleep(2.0)
                 continue
         ok, frame = cap.read()
@@ -140,6 +220,8 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
             continue
         cam_fps.tick(now)
         phone_thread.frame = frame
+        if pose_thread.ident is not None:
+            pose_thread.frame = frame
 
         t0 = time.time()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -154,13 +236,15 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
             detected=bool(boxes),
             usage_candidate=any(is_usage_region(b, roi_box) for b in boxes),
         )
-        tele, events = pipeline.update(now, obs, phone)
+        pose = pose_thread.observation
+        tele, events = pipeline.update(now, obs, phone, pose)
         tele["fps"] = {"camera": cam_fps.value(now), "face": face_fps.value(now),
-                       "phone": phone_thread.fps.value(now)}
-        tele["latency_ms"] = {"face": face_ms, "phone": phone_thread.latency_ms}
+                       "phone": phone_thread.fps.value(now), "pose": pose_thread.fps.value(now)}
+        tele["latency_ms"] = {"face": face_ms, "phone": phone_thread.latency_ms,
+                              "pose": pose_thread.latency_ms}
         pending_events.extend(events)
 
-        _put_latest(frame_q, _encode(_draw_overlay(frame, tele, face_box, boxes)))
+        _put_latest(frame_q, _encode(_draw_overlay(frame, tele, face_box, boxes, pose)))
         if now - last_sent >= 1.0 / MAX_TELEMETRY_HZ or pending_events:
             tele["events"] = pending_events
             pending_events = []
@@ -168,6 +252,7 @@ def _run_camera(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict) ->
             _put_latest(telemetry_q, tele)
 
     phone_thread.running = False
+    pose_thread.running = False
     if cap is not None:
         cap.release()
     tracker.close()
@@ -197,8 +282,8 @@ def _run_simulated(telemetry_q: Any, command_q: Any, frame_q: Any, config: dict)
         cmds.poll(now)
         obs, phone = _scenario(now - start)
         tele, _ = pipeline.update(now, obs, phone)
-        tele["fps"] = {"camera": 10, "face": 10, "phone": 5}
-        tele["latency_ms"] = {"face": 5, "phone": 20}
+        tele["fps"] = {"camera": 10, "face": 10, "phone": 5, "pose": 0}
+        tele["latency_ms"] = {"face": 5, "phone": 20, "pose": 0}
         _put_latest(telemetry_q, tele)
         frame = np.zeros((480, 640, 3), np.uint8)
         cv2.putText(frame, "SIMULATION", (200, 240), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (200, 200, 200), 2)

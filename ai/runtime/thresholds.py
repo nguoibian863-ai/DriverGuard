@@ -24,6 +24,10 @@ class Thresholds:
     perclos_window_s: float = 60.0
     yawn_window_s: float = 300.0
     pitch_sign: float = 1.0
+    use_pose_fallback: bool = False
+    pose_yaw_ratio: float = 0.35
+    pose_pitch_ratio: float = 0.30
+    pose_max_age_s: float = 0.6
 
 
 def load_thresholds(path: Path = CONFIG_PATH) -> Thresholds:
@@ -31,5 +35,14 @@ def load_thresholds(path: Path = CONFIG_PATH) -> Thresholds:
     if not path.exists():
         return Thresholds()
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    names = {f.name for f in fields(Thresholds)}
-    return Thresholds(**{k: float(v) for k, v in data.items() if k in names})
+    definitions = {f.name: f for f in fields(Thresholds)}
+    values = {}
+    for key, value in data.items():
+        field = definitions.get(key)
+        if field is None:
+            continue
+        if field.type is bool:
+            values[key] = value if isinstance(value, bool) else str(value).lower() in {"1", "true", "yes", "on"}
+        else:
+            values[key] = float(value)
+    return Thresholds(**values)

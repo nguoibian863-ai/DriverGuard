@@ -10,6 +10,7 @@ from statistics import median
 from typing import Any
 
 from ai.perception.head_pose import NeutralPoseCalibrator, classify_head
+from ai.perception.pose_tracker import PoseObservation
 from ai.risk.engine import RiskEngine
 from ai.risk.rules import RiskLevel
 from ai.runtime.thresholds import Thresholds
@@ -71,6 +72,11 @@ class DriverPipeline:
         self._started: dict[str, float] = {}
         self._ear_cal: list[float] = []
         self.ear_baseline: float | None = None
+        self._pose_cal_start: float | None = None
+        self._pose_yaw_samples: list[float] = []
+        self._pose_pitch_samples: list[float] = []
+        self.pose_yaw_baseline: float | None = None
+        self.pose_pitch_baseline: float | None = None
         self.last_face_time: float | None = None
         self.last_rel_yaw = 0.0
 
@@ -79,6 +85,11 @@ class DriverPipeline:
         self.calibrator = NeutralPoseCalibrator(window_s=self.th.calibration_s)
         self._ear_cal = []
         self.ear_baseline = None
+        self._pose_cal_start = None
+        self._pose_yaw_samples = []
+        self._pose_pitch_samples = []
+        self.pose_yaw_baseline = None
+        self.pose_pitch_baseline = None
 
     @property
     def ear_threshold(self) -> float:
@@ -92,12 +103,25 @@ class DriverPipeline:
 
     # --- xử lý một nhịp ---
     def update(
-        self, now: float, face: FaceObservation | None, phone: PhoneObservation | None = None
+        self,
+        now: float,
+        face: FaceObservation | None,
+        phone: PhoneObservation | None = None,
+        pose: PoseObservation | None = None,
     ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         t = self.th
         phone = phone or PhoneObservation()
         events: list[dict[str, Any]] = []
         has_face = face is not None
+        pose_fresh = pose is not None and (
+            pose.observed_at is None
+            or 0.0 <= now - pose.observed_at <= t.pose_max_age_s
+        )
+        pose_yaw_rel: float | None = None
+        pose_pitch_rel: float | None = None
+        if pose is not None and self.pose_yaw_baseline is not None and self.pose_pitch_baseline is not None:
+            pose_yaw_rel = pose.yaw_proxy - self.pose_yaw_baseline
+            pose_pitch_rel = pose.pitch_proxy - self.pose_pitch_baseline
 
         rel_yaw = rel_pitch = 0.0
         ear = mar = yaw = pitch = roll = 0.0
@@ -109,9 +133,17 @@ class DriverPipeline:
             was_calibrated = self.calibrator.is_calibrated
             if not was_calibrated:
                 self._ear_cal.append(ear)
+                if self._pose_cal_start is None:
+                    self._pose_cal_start = now
+                if pose_fresh and now < self._pose_cal_start + t.calibration_s:
+                    self._pose_yaw_samples.append(pose.yaw_proxy)
+                    self._pose_pitch_samples.append(pose.pitch_proxy)
             self.calibrator.add_sample(now, yaw, pitch_signed)
             if self.calibrator.is_calibrated and not was_calibrated and self._ear_cal:
                 self.ear_baseline = float(median(self._ear_cal))
+            if self.calibrator.is_calibrated and not was_calibrated and self._pose_yaw_samples:
+                self.pose_yaw_baseline = float(median(self._pose_yaw_samples))
+                self.pose_pitch_baseline = float(median(self._pose_pitch_samples))
             if self.calibrator.is_calibrated:
                 rel_yaw, rel_pitch = self.calibrator.relative(yaw, pitch_signed)
             self.last_face_time = now
@@ -133,14 +165,22 @@ class DriverPipeline:
             and now - self.last_face_time <= 3.0
             and abs(self.last_rel_yaw) >= 0.8 * t.yaw_threshold
         )
+        pose_fallback_ready = (
+            t.use_pose_fallback and not has_face and calibrated and pose_fresh
+            and pose_yaw_rel is not None and pose_pitch_rel is not None
+        )
+        pose_away = pose_fallback_ready and abs(pose_yaw_rel) >= t.pose_yaw_ratio
+        pose_down = pose_fallback_ready and pose_pitch_rel >= t.pose_pitch_ratio
+        pose_presence = t.use_pose_fallback and not has_face and pose_fresh
+        held_away = recent_away and not pose_fallback_ready
         signals = {
             "DROWSINESS_ACUTE": has_face and eye_closed_now,
             "YAWNING": has_face and mar > t.mar_threshold,
-            "LOOKING_AWAY": (has_face and calibrated and head == "LOOKING_AWAY") or recent_away,
-            "LOOKING_DOWN": has_face and calibrated and head == "LOOKING_DOWN",
+            "LOOKING_AWAY": (has_face and calibrated and head == "LOOKING_AWAY") or held_away or pose_away,
+            "LOOKING_DOWN": (has_face and calibrated and head == "LOOKING_DOWN") or pose_down,
             "PHONE_USAGE": phone.usage_candidate,
             # Có điện thoại ở vùng sử dụng => tài xế vẫn ở đó (tay che mặt), không báo vắng mặt
-            "DRIVER_ABSENCE": not has_face and not recent_away and not phone.usage_candidate,
+            "DRIVER_ABSENCE": not has_face and not recent_away and not pose_presence and not phone.usage_candidate,
         }
         fsms = {
             "DROWSINESS_ACUTE": self.eyes_fsm,
@@ -236,10 +276,18 @@ class DriverPipeline:
             "looking_down": active["LOOKING_DOWN"],
             "phone_detected": phone.detected,
             "phone_usage": active["PHONE_USAGE"],
+            "pose": {
+                "person": pose is not None,
+                "yaw": round(pose.yaw_proxy, 4) if pose is not None else None,
+                "pitch": round(pose.pitch_proxy, 4) if pose is not None else None,
+                "yaw_rel": round(pose_yaw_rel, 4) if pose_yaw_rel is not None else None,
+                "pitch_rel": round(pose_pitch_rel, 4) if pose_pitch_rel is not None else None,
+                "ear_asym": round(pose.ear_asym, 4) if pose is not None else None,
+            },
             "risk_score": round(state.score, 1),
             "risk_level": level,
-            "fps": {"camera": 0, "face": 0, "phone": 0},
-            "latency_ms": {"face": 0, "phone": 0},
+            "fps": {"camera": 0, "face": 0, "phone": 0, "pose": 0},
+            "latency_ms": {"face": 0, "phone": 0, "pose": 0},
             "events": events,
         }
         return telemetry, events
