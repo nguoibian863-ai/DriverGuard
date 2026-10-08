@@ -4,3 +4,4 @@ httpx
 ruff
 black
 mypy
+pyarrow

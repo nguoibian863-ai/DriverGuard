@@ -1,0 +1,509 @@
+{
+  "experiment": "EXP-010",
+  "dataset": "HuggingFace StevenLe456/head-pose (Pointing'04)",
+  "data_files": [
+    "data/raw/headpose/train-0.parquet",
+    "data/raw/headpose/train-1.parquet",
+    "data/raw/headpose/train-2.parquet"
+  ],
+  "is_complete_dataset_run": true,
+  "limit": null,
+  "n_images_processed": 13950,
+  "n_images_expected": 13950,
+  "images_by_split": {
+    "train-0": 4650,
+    "train-1": 4650,
+    "train-2": 4650
+  },
+  "decode_errors": 0,
+  "angle_grid_deg": {
+    "expected": [
+      -90,
+      -75,
+      -60,
+      -45,
+      -30,
+      -15,
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90
+    ],
+    "tilt_values_present": [
+      -90,
+      -60,
+      -30,
+      -15,
+      0,
+      15,
+      30,
+      60,
+      90
+    ],
+    "pan_values_present": [
+      -90,
+      -75,
+      -60,
+      -45,
+      -30,
+      -15,
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90
+    ]
+  },
+  "detections": {
+    "face_detected_n": 10246,
+    "face_detected_rate": 0.73448,
+    "pose_usable_n": 4512,
+    "pose_usable_rate": 0.323441,
+    "both_missing_n": 2338,
+    "both_missing_rate": 0.167599
+  },
+  "neutral_baseline_gt_tilt_0_pan_0": {
+    "neutral_images_n": 150,
+    "face_observed_n": 142,
+    "pose_usable_n": 37,
+    "median": {
+      "face_yaw_deg": -1.356633618602415,
+      "face_pitch_signed_deg": -0.5509265364566434,
+      "yaw_proxy": -0.033890604267164316,
+      "pitch_proxy": -0.5595114039500011
+    }
+  },
+  "tilt_direction_empirical": {
+    "pitch_sign_from_thresholds_yaml": 1.0,
+    "spearman_gt_tilt_vs_mediapipe_pitch_raw_face_visible": {
+      "n": 10246,
+      "rho": -0.909811
+    },
+    "spearman_gt_tilt_vs_mediapipe_pitch_signed_face_visible": {
+      "n": 10246,
+      "rho": -0.909811
+    },
+    "spearman_gt_tilt_vs_pose_pitch_proxy_face_visible_and_pose_usable": {
+      "n": 3146,
+      "rho": -0.919369
+    },
+    "positive_tilt_direction": "up",
+    "down_label_rule": "gt_tilt_a_deg <= -30",
+    "direction_basis": "pose_pitch_proxy on images where both face and pose are usable"
+  },
+  "thresholds_read_without_modification": {
+    "yaw_threshold_deg": 30.0,
+    "pitch_threshold_deg": 20.0,
+    "pitch_sign": 1.0,
+    "pose_yaw_ratio": 0.35,
+    "pose_pitch_ratio": 0.3,
+    "yaml_use_pose_fallback": false
+  },
+  "overall_bin_metrics": {
+    "n_images": 13950,
+    "face_detected_n": 10246,
+    "face_detected_rate": 0.73448,
+    "pose_usable_n": 4512,
+    "pose_usable_rate": 0.323441,
+    "both_missing_n": 2338,
+    "both_missing_rate": 0.167599,
+    "median_abs_relative_mp_yaw_error_deg": 71.357947,
+    "pose_yaw_spearman_vs_gt_pan": -0.947729
+  },
+  "classifications": {
+    "looking_away_30": {
+      "A_media_pipe_only": {
+        "tp": 4846,
+        "fp": 0,
+        "fn": 5654,
+        "tn": 3450,
+        "precision": 1.0,
+        "recall": 0.461524,
+        "f1": 0.631565,
+        "fpr": 0.0
+      },
+      "B_face_plus_pose_fallback": {
+        "tp": 5561,
+        "fp": 1,
+        "fn": 4939,
+        "tn": 3449,
+        "precision": 0.99982,
+        "recall": 0.529619,
+        "f1": 0.692442,
+        "fpr": 0.00029
+      },
+      "pose_only": {
+        "tp": 1167,
+        "fp": 1,
+        "fn": 9333,
+        "tn": 3449,
+        "precision": 0.999144,
+        "recall": 0.111143,
+        "f1": 0.200034,
+        "fpr": 0.00029
+      }
+    },
+    "looking_away_45": {
+      "A_media_pipe_only": {
+        "tp": 4664,
+        "fp": 182,
+        "fn": 3736,
+        "tn": 5368,
+        "precision": 0.962443,
+        "recall": 0.555238,
+        "f1": 0.704213,
+        "fpr": 0.032793
+      },
+      "B_face_plus_pose_fallback": {
+        "tp": 5375,
+        "fp": 187,
+        "fn": 3025,
+        "tn": 5363,
+        "precision": 0.966379,
+        "recall": 0.639881,
+        "f1": 0.769947,
+        "fpr": 0.033694
+      },
+      "pose_only": {
+        "tp": 1155,
+        "fp": 13,
+        "fn": 7245,
+        "tn": 5537,
+        "precision": 0.98887,
+        "recall": 0.1375,
+        "f1": 0.24143,
+        "fpr": 0.002342
+      }
+    },
+    "looking_down_30": {
+      "A_media_pipe_only": {
+        "tp": 404,
+        "fp": 15,
+        "fn": 3646,
+        "tn": 9885,
+        "precision": 0.9642,
+        "recall": 0.099753,
+        "f1": 0.180801,
+        "fpr": 0.001515
+      },
+      "B_face_plus_pose_fallback": {
+        "tp": 487,
+        "fp": 15,
+        "fn": 3563,
+        "tn": 9885,
+        "precision": 0.97012,
+        "recall": 0.120247,
+        "f1": 0.213972,
+        "fpr": 0.001515
+      },
+      "pose_only": {
+        "tp": 211,
+        "fp": 0,
+        "fn": 3839,
+        "tn": 9900,
+        "precision": 1.0,
+        "recall": 0.052099,
+        "f1": 0.099038,
+        "fpr": 0.0
+      }
+    }
+  },
+  "pose_yaw_ratio_sweep": [
+    {
+      "pose_yaw_ratio": 0.2,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 2578,
+          "fp": 16,
+          "fn": 7922,
+          "tn": 3434,
+          "precision": 0.993832,
+          "recall": 0.245524,
+          "f1": 0.393768,
+          "fpr": 0.004638
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5883,
+          "fp": 2,
+          "fn": 4617,
+          "tn": 3448,
+          "precision": 0.99966,
+          "recall": 0.560286,
+          "f1": 0.718096,
+          "fpr": 0.00058
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 2377,
+          "fp": 217,
+          "fn": 6023,
+          "tn": 5333,
+          "precision": 0.916345,
+          "recall": 0.282976,
+          "f1": 0.432418,
+          "fpr": 0.039099
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5673,
+          "fp": 212,
+          "fn": 2727,
+          "tn": 5338,
+          "precision": 0.963976,
+          "recall": 0.675357,
+          "f1": 0.79426,
+          "fpr": 0.038198
+        }
+      }
+    },
+    {
+      "pose_yaw_ratio": 0.25,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 2147,
+          "fp": 8,
+          "fn": 8353,
+          "tn": 3442,
+          "precision": 0.996288,
+          "recall": 0.204476,
+          "f1": 0.339313,
+          "fpr": 0.002319
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5808,
+          "fp": 2,
+          "fn": 4692,
+          "tn": 3448,
+          "precision": 0.999656,
+          "recall": 0.553143,
+          "f1": 0.712201,
+          "fpr": 0.00058
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 2099,
+          "fp": 56,
+          "fn": 6301,
+          "tn": 5494,
+          "precision": 0.974014,
+          "recall": 0.249881,
+          "f1": 0.397726,
+          "fpr": 0.01009
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5617,
+          "fp": 193,
+          "fn": 2783,
+          "tn": 5357,
+          "precision": 0.966781,
+          "recall": 0.66869,
+          "f1": 0.79057,
+          "fpr": 0.034775
+        }
+      }
+    },
+    {
+      "pose_yaw_ratio": 0.3,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 1652,
+          "fp": 2,
+          "fn": 8848,
+          "tn": 3448,
+          "precision": 0.998791,
+          "recall": 0.157333,
+          "f1": 0.271845,
+          "fpr": 0.00058
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5707,
+          "fp": 1,
+          "fn": 4793,
+          "tn": 3449,
+          "precision": 0.999825,
+          "recall": 0.543524,
+          "f1": 0.70422,
+          "fpr": 0.00029
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 1628,
+          "fp": 26,
+          "fn": 6772,
+          "tn": 5524,
+          "precision": 0.984281,
+          "recall": 0.19381,
+          "f1": 0.323851,
+          "fpr": 0.004685
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5520,
+          "fp": 188,
+          "fn": 2880,
+          "tn": 5362,
+          "precision": 0.967064,
+          "recall": 0.657143,
+          "f1": 0.782535,
+          "fpr": 0.033874
+        }
+      }
+    },
+    {
+      "pose_yaw_ratio": 0.35,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 1167,
+          "fp": 1,
+          "fn": 9333,
+          "tn": 3449,
+          "precision": 0.999144,
+          "recall": 0.111143,
+          "f1": 0.200034,
+          "fpr": 0.00029
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5561,
+          "fp": 1,
+          "fn": 4939,
+          "tn": 3449,
+          "precision": 0.99982,
+          "recall": 0.529619,
+          "f1": 0.692442,
+          "fpr": 0.00029
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 1155,
+          "fp": 13,
+          "fn": 7245,
+          "tn": 5537,
+          "precision": 0.98887,
+          "recall": 0.1375,
+          "f1": 0.24143,
+          "fpr": 0.002342
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5375,
+          "fp": 187,
+          "fn": 3025,
+          "tn": 5363,
+          "precision": 0.966379,
+          "recall": 0.639881,
+          "f1": 0.769947,
+          "fpr": 0.033694
+        }
+      }
+    },
+    {
+      "pose_yaw_ratio": 0.4,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 698,
+          "fp": 0,
+          "fn": 9802,
+          "tn": 3450,
+          "precision": 1.0,
+          "recall": 0.066476,
+          "f1": 0.124665,
+          "fpr": 0.0
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5339,
+          "fp": 0,
+          "fn": 5161,
+          "tn": 3450,
+          "precision": 1.0,
+          "recall": 0.508476,
+          "f1": 0.674159,
+          "fpr": 0.0
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 697,
+          "fp": 1,
+          "fn": 7703,
+          "tn": 5549,
+          "precision": 0.998567,
+          "recall": 0.082976,
+          "f1": 0.15322,
+          "fpr": 0.00018
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 5157,
+          "fp": 182,
+          "fn": 3243,
+          "tn": 5368,
+          "precision": 0.965911,
+          "recall": 0.613929,
+          "f1": 0.75071,
+          "fpr": 0.032793
+        }
+      }
+    },
+    {
+      "pose_yaw_ratio": 0.5,
+      "looking_away_30": {
+        "pose_only": {
+          "tp": 104,
+          "fp": 0,
+          "fn": 10396,
+          "tn": 3450,
+          "precision": 1.0,
+          "recall": 0.009905,
+          "f1": 0.019615,
+          "fpr": 0.0
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 4915,
+          "fp": 0,
+          "fn": 5585,
+          "tn": 3450,
+          "precision": 1.0,
+          "recall": 0.468095,
+          "f1": 0.637691,
+          "fpr": 0.0
+        }
+      },
+      "looking_away_45": {
+        "pose_only": {
+          "tp": 104,
+          "fp": 0,
+          "fn": 8296,
+          "tn": 5550,
+          "precision": 1.0,
+          "recall": 0.012381,
+          "f1": 0.024459,
+          "fpr": 0.0
+        },
+        "B_face_plus_pose_fallback": {
+          "tp": 4733,
+          "fp": 182,
+          "fn": 3667,
+          "tn": 5368,
+          "precision": 0.96297,
+          "recall": 0.563452,
+          "f1": 0.710928,
+          "fpr": 0.032793
+        }
+      }
+    }
+  ],
+  "method": {
+    "image_iteration": "PyArrow ParquetFile.iter_batches(batch_size=4, columns=['x','y']); decode and infer one image at a time; no pandas and no full-image dataset in memory.",
+    "face_tracker": "One FaceLandmarkTracker in VIDEO mode, matching the worker API; synthetic timestamps increase monotonically by 1/30 second across all parquet rows.",
+    "pose_tracker": "PoseTracker.detect called once per decoded source image with the BGR frame, as in the worker; pose usable only when detect returns an observation and compute_pose_features(keypoints) is not None.",
+    "relative_values": "MediaPipe pitch is multiplied by yaml pitch_sign before subtracting the GT-neutral median. Pose pitch_proxy is not sign-multiplied, matching pipeline.py where positive nose y is down. All four relative values subtract the corresponding median from usable GT (tilt=0, pan=0) images.",
+    "classification": "A is MediaPipe only; missing face predicts false. B adds pose only when face is missing. Pose-only predicts from pose on every usable image. Per-image flags are instantaneous threshold comparisons; temporal FSM durations are not applied.",
+    "subject_split": "Not available: x.path is null for all rows; repeated five-row label runs do not identify a person, so no subject ID was inferred.",
+    "tilt_bins": "All 13 possible 15-degree tilt bins are emitted; the dataset contains only the values listed in angle_grid_deg.tilt_values_present."
+  }
+}

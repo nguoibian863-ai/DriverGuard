@@ -1,0 +1,19 @@
+ear_threshold: 0.15        # EAR thấp hơn => mắt nhắm
+eyes_closed_s: 1.8         # nhắm mắt liên tục => DROWSINESS_ACUTE
+mar_threshold: 0.40        # MAR cao hơn => miệng mở rộng (ngáp); 0.50 -> 0.40 theo thí nghiệm 5
+yawn_s: 2.0
+yaw_threshold: 30.0        # độ, so với tư thế chuẩn
+pitch_threshold: 20.0
+head_s: 2.0
+phone_s: 1.5
+absence_s: 3.0
+cooldown_s: 3.0
+calibration_s: 4.0
+perclos_window_s: 60.0
+yawn_window_s: 300.0
+pitch_sign: 1.0            # đổi thành -1.0 nếu cúi đầu cho pitch âm
+use_pose_fallback: true    # BẬT theo lệnh sếp 2026-10-07 (EXP-008/010); pose chỉ bổ sung hướng đầu khi mất mặt
+# pose_*_ratio: EXP-010 (Pointing'04) gợi ý yaw 0.20-0.25 tốt hơn 0.35 nhưng chưa kiểm trên cabin nên giữ giá trị tạm.
+pose_yaw_ratio: 0.35       # độ lệch ngang mũi / bề rộng vai
+pose_pitch_ratio: 0.30     # độ lệch dọc mũi / bề rộng vai (cúi đầu tăng)
+pose_max_age_s: 0.6        # bỏ qua kết quả suy luận pose cũ hơn mức này

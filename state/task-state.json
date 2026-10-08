@@ -1,1 +1,113 @@
-{"tasks": {}}
+﻿{
+    "tasks":  {
+                  "UI-001":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "reviewing",
+                                                       "fixing",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  1,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:03:32.9473592+07:00"
+                             },
+                  "UI-002":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:03:32.9840680+07:00"
+                             },
+                  "UI-003":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:25:47.7580053+07:00"
+                             },
+                  "UI-004":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T11:25:47.7880132+07:00"
+                             },
+                  "AI-001":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T12:45:27.3522122+07:00"
+                             },
+                  "UI-005":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "planned",
+                                                       "implementing",
+                                                       "checked",
+                                                       "reviewing",
+                                                       "fixing",
+                                                       "checked",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  1,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-05T12:45:27.3742181+07:00"
+                             },
+                  "EXP-006":  {
+                                  "status":  "approved",
+                                  "phase_history":  [
+                                                        "planned",
+                                                        "implementing",
+                                                        "checked",
+                                                        "approved"
+                                                    ],
+                                  "fix_attempts":  0,
+                                  "max_fix_attempts":  3,
+                                  "updated_at":  "2026-10-06T09:02:46.0286670+07:00"
+                              },
+                  "AI-002":  {
+                                 "status":  "approved",
+                                 "phase_history":  [
+                                                       "implementing",
+                                                       "approved"
+                                                   ],
+                                 "fix_attempts":  0,
+                                 "max_fix_attempts":  3,
+                                 "updated_at":  "2026-10-07T15:38:07.2610204+07:00"
+                             },
+                  "EXP-007":  {
+                                  "status":  "approved",
+                                  "phase_history":  [
+                                                        "implementing",
+                                                        "approved"
+                                                    ],
+                                  "fix_attempts":  0,
+                                  "max_fix_attempts":  3,
+                                  "updated_at":  "2026-10-07T15:46:02.6427984+07:00"
+                              }
+              }
+}

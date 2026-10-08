@@ -11,3 +11,8 @@ models/pytorch/
 models/onnx/
 models/tensorrt/
 *.db
+models/mediapipe/*.task
+models/*.pt
+*.log
+data/samples/portrait.jpg
+docs/experiments/web_video/frames/
