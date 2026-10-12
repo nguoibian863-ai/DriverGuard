@@ -1,7 +1,7 @@
 # DriverGuard (MVP)
 
 Hệ thống giám sát tài xế bằng Computer Vision: phát hiện buồn ngủ, ngáp, mất tập trung,
-dùng điện thoại và tính điểm rủi ro theo thời gian thực. Tài liệu thiết kế: `DriverGuard_Docs/`.
+dùng điện thoại và tính điểm rủi ro theo thời gian thực. Tài liệu thiết kế: `docs/design/`.
 Báo cáo MVP: `docs/MVP_REPORT.md`.
 
 ## Cài môi trường

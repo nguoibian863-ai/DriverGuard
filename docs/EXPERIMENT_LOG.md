@@ -518,3 +518,22 @@ VRAM đỉnh 174 MiB mọi cấu hình. Kiểm chéo: VP 100%; lK baseline 96,3%
 
 ### 18.4 Kết luận và hạn chế
 **Chưa đưa vào pipeline.** Kỹ thuật đo được "tay xa vị trí lái" khi có hiệu chuẩn theo camera, nhưng chưa chứng minh được "cả hai tay rời" vì không có dữ liệu nhãn đúng. Cần: (a) tập/video có nhãn tay trên-rời vô lăng (ví dụ quay cabin thật, hoặc dữ liệu có nhãn hands-on-wheel như Drive&Act, DMD khi xin được quyền), (b) vùng vô lăng hiệu chuẩn theo từng camera. Hạn chế: nhãn gần đúng, split c0 không có id người (có thể rò rỉ cùng người giữa hai nửa), camera bên hông, một video sanity.
+
+## 19. Thí nghiệm 12 (EXP-012): EAR/MAR trên tập công khai độc lập Driver Drowsiness Dataset
+
+Ghi ngày 2026-10-12 (Claude, chạy trong container, CPU). Mã: `scripts/eval_ddd_hf.py`; số liệu: `docs/experiments/ddd_hf.json`.
+Dữ liệu: HF `akahana/Driver-Drowsiness-Dataset`, shard test-0, lấy ngẫu nhiên 1.500 ảnh (801 Drowsy, 699 Non Drowsy), seed 0. Đây là người khác hẳn người thử của ta; nhưng đây là ảnh tĩnh đã cắt mặt, không phải video, và là nhãn "Drowsy" của tập (mắt nhắm hoặc lim dim), không phải nhãn ngáp.
+
+| Chỉ số | Giá trị |
+|---|---|
+| MediaPipe thấy mặt | 99,9% (Drowsy), 100% (Non Drowsy) |
+| EAR trung vị | 0,225 (Drowsy) · 0,266 (Non Drowsy) |
+| AUC của EAR (thấp = Drowsy) | 0,734 |
+| Ngưỡng cấu hình EAR 0,15 / MAR 0,40 | recall 0,175; FPR 0,023 |
+| EAR 0,18 · 0,20 · 0,22 | recall 0,239 · 0,338 · 0,468; FPR 0,026 · 0,049 · 0,094 |
+| MAR | AUC 0,39, recall ≈ 0 (tập này không có ngáp) |
+
+Nhận xét:
+1. Ngưỡng EAR 0,15 chỉ bắt các ca nhắm hẳn; ảnh "Drowsy" gồm nhiều ca mắt lim dim (EAR ~0,2) nên recall tĩnh thấp (17,5%). Điều này phù hợp thiết kế: `DROWSINESS_ACUTE` dựa vào nhắm mắt kéo dài/PERCLOS theo thời gian, không phải một khung.
+2. FPR thấp (2,3%) ở ngưỡng hiện tại: ít báo giả trên người lạ. Tăng ngưỡng lên 0,20 gần gấp đôi recall với FPR 4,9%, nhưng chưa đủ bằng chứng để đổi, vì nhãn không phân biệt nhắm hẳn và lim dim và không có chiều thời gian.
+3. Kết luận có hạn chế: ảnh cắt mặt, nhãn nhiễu, chưa kiểm khả năng ngáp/quay đầu. Đây chưa thay thế NTHU-DDD/YawDD dạng video. Không thay đổi tham số nào.
