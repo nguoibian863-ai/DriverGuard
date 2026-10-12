@@ -11,6 +11,16 @@ MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
 WEIGHTS = MODELS_DIR / os.getenv("DRIVERGUARD_YOLO_MODEL", "yolo26x.pt")
 
 Box = tuple[int, int, int, int]
+DEFAULT_CONF = 0.25
+
+
+def default_conf() -> float:
+    """Độ tin cậy tối thiểu; đổi bằng DRIVERGUARD_YOLO_CONF (thí nghiệm 14 gợi ý thử 0,10 trên video)."""
+    try:
+        value = float(os.getenv("DRIVERGUARD_YOLO_CONF", DEFAULT_CONF))
+    except ValueError:
+        return DEFAULT_CONF
+    return value if 0.0 < value < 1.0 else DEFAULT_CONF
 
 
 def is_usage_region(phone: Box, face: Box | None) -> bool:
@@ -49,12 +59,12 @@ class FaceBoxHold:
 class PhoneDetector:
     """YOLO nano; tự dùng GPU nếu có."""
 
-    def __init__(self, weights: Path = WEIGHTS, conf: float = 0.25) -> None:
+    def __init__(self, weights: Path = WEIGHTS, conf: float | None = None) -> None:
         import torch
         from ultralytics import YOLO
 
         self.device = 0 if torch.cuda.is_available() else "cpu"
-        self.conf = conf
+        self.conf = default_conf() if conf is None else conf
         weights.parent.mkdir(parents=True, exist_ok=True)
         if not weights.exists():
             # Tải đúng vào models/ (không rải file .pt ra thư mục đang chạy)

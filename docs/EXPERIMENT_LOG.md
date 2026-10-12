@@ -580,6 +580,6 @@ Quét độ tin cậy (60 ảnh mỗi lớp, chỉ xét có hộp): conf 0,10 ch
 2. **ROI không phải nút thắt khi đã có hộp**: 68/69 ca có hộp đều rơi vào ROI. Nút thắt là bộ phát hiện: 69% ở conf 0,25 khi áp điện thoại vào tai.
 3. **Nhắn tin nhìn xuống (mobile_usage) YOLO không thấy điện thoại (0%)**, ban đêm, điện thoại thấp và nhỏ. Ca này chỉ phát hiện qua `LOOKING_DOWN` (pitch), không phải `PHONE_USAGE`.
 4. **Quay đầu mạnh làm mất mặt 30%** (rotated) và 20% khi cúi: đây là chỗ pose fallback cần phát huy; chưa đo trên FORM vì chỉ MediaPipe được chạy.
-5. **Cảnh báo giả khi cúi**: EAR trung vị của `mobile_usage` là 0,156 (so với 0,261 ở forward), sát ngưỡng 0,15; khi cúi nhìn xuống mí mắt khép lại nên EAR tụt. Có nguy cơ báo buồn ngủ nhầm khi tài xế cúi nhìn điện thoại; nên cân nhắc bỏ qua EAR khi pitch lệch lớn (chưa làm, cần dữ liệu video).
-6. Gợi ý, chưa áp dụng: hạ `conf` YOLO từ 0,25 xuống 0,10 (recall 69% → 83%, báo giả 0% trên 120 ảnh âm). Phải kiểm trên video, vì luật `phone_s` 1,5 s đã lọc báo giả theo thời gian.
+5. **EAR khi cúi đã được xử lý trong pipeline**: EAR trung vị của `mobile_usage` chỉ 0,156 (forward 0,261) vì mí mắt khép khi cúi, nhưng `pipeline.py` đã bỏ qua EAR khi đã hiệu chuẩn và pitch tương đối > ngưỡng (`suppress_eyes`), nên không báo buồn ngủ nhầm ở chế độ chạy bình thường. Chưa kiểm trước khi hiệu chuẩn xong (4 s đầu).
+6. Đã làm cho `conf` YOLO đổi được bằng biến môi trường `DRIVERGUARD_YOLO_CONF` (mặc định vẫn 0,25). Gợi ý thử 0,10 (recall 69% → 83%, báo giả 0% trên 120 ảnh âm). Phải kiểm trên video, vì luật `phone_s` 1,5 s đã lọc báo giả theo thời gian.
 Hạn chế: ảnh tĩnh, ban đêm, một camera, nhãn theo lớp; 100 ảnh mỗi lớp cho phần điện thoại; ngưỡng yaw/pitch dùng trung vị `forward` làm chuẩn.
