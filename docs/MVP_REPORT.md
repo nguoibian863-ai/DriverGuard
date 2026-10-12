@@ -97,7 +97,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 ## 4. Giới hạn đã biết (chưa làm hoặc chưa chắc)
 
-- **Dấu của pitch chưa được kiểm chứng.** Quy ước góc từ ma trận MediaPipe có thể làm "cúi đầu" ra pitch âm. Đã có tham số `pitch_sign` trong `ai/config/thresholds.yaml` để đảo.
+- **Dấu của pitch đã được kiểm chứng** trên tập FORM (thí nghiệm 14): cúi đầu cho pitch dương, khớp `pitch_sign: 1.0`. Còn nguy cơ EAR tụt khi cúi (báo buồn ngủ nhầm), cần kiểm trên video.
 - **Ngưỡng ngáp đã chỉnh về MAR 0,40** theo các thí nghiệm 4, 5 và 13 (xem `docs/EXPERIMENT_LOG.md`). **ROI điện thoại vẫn là ước lượng**: mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay, và chưa xác nhận điện thoại nằm trong khung camera laptop.
 - Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset và ảnh ngáp công khai (thí nghiệm 1–13). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, Docker Compose, lưu snapshot (giới hạn 500 ảnh), âm thanh cảnh báo (mới có biểu ngữ trên giao diện), đồ thị FPS/latency.
 - Endpoint danh sách phiên (`GET /sessions`, `/stop`) chưa làm; mỗi lần khởi động backend tạo một phiên.
@@ -142,7 +142,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 |---|---|---|
 | Kiểm chứng worker + pose fallback trên camera thật | Máy có camera | Khởi động lại backend, `python scripts/live_session.py --out docs/experiments/live_session_4.json --label EXP-014`, rồi `python scripts/score_live_session.py` |
 | Hạ `pose_yaw_ratio` 0,35 về 0,20–0,25 | Kết quả phiên trên | Chỉ đổi nếu phiên cabin cho thấy bỏ sót quay đầu mà không tăng báo giả |
-| Xác nhận ROI điện thoại | Camera thật | Chạy pha cầm điện thoại trong `live_session.py`, xem điện thoại có trong khung và `phone_detected` có lên không |
+| Xác nhận ROI điện thoại trên camera của sếp | Camera thật | Trên FORM (thí nghiệm 14) ROI ổn (68/69 ca có hộp) nhưng YOLO chỉ thấy 69% ca áp tai, 0% ca nhắn tin nhìn xuống; chạy pha điện thoại trong `live_session.py` để xác nhận trên camera laptop; cân nhắc hạ conf YOLO 0,25 → 0,10 |
 | Đánh giá trên video NTHU-DDD / YawDD | Tải dữ liệu (cần đăng ký) | Đặt vào `data/raw/`, rồi viết script đánh giá tương tự `eval_video_pose.py` |
 | Người thử thứ hai, camera hồng ngoại | Người và thiết bị | Lặp lại phiên trên với người khác |
 | Tay rời vô lăng | Dữ liệu nhãn + hiệu chuẩn vùng vô lăng | Xem `docs/EXPERIMENT_LOG.md` mục 18; chưa đưa vào pipeline |
