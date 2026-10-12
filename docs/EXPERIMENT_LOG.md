@@ -537,3 +537,18 @@ Nhận xét:
 1. Ngưỡng EAR 0,15 chỉ bắt các ca nhắm hẳn; ảnh "Drowsy" gồm nhiều ca mắt lim dim (EAR ~0,2) nên recall tĩnh thấp (17,5%). Điều này phù hợp thiết kế: `DROWSINESS_ACUTE` dựa vào nhắm mắt kéo dài/PERCLOS theo thời gian, không phải một khung.
 2. FPR thấp (2,3%) ở ngưỡng hiện tại: ít báo giả trên người lạ. Tăng ngưỡng lên 0,20 gần gấp đôi recall với FPR 4,9%, nhưng chưa đủ bằng chứng để đổi, vì nhãn không phân biệt nhắm hẳn và lim dim và không có chiều thời gian.
 3. Kết luận có hạn chế: ảnh cắt mặt, nhãn nhiễu, chưa kiểm khả năng ngáp/quay đầu. Đây chưa thay thế NTHU-DDD/YawDD dạng video. Không thay đổi tham số nào.
+
+## 20. Thí nghiệm 13 (EXP-013): MAR (ngáp) trên tập công khai c3rl/yawning-people
+
+Ghi ngày 2026-10-12 (Claude, container, CPU). Mã: `scripts/eval_yawn_hf.py`; số liệu: `docs/experiments/yawn_hf.json`.
+Dữ liệu: HF `c3rl/yawning-people`, lấy ngẫu nhiên 300 ảnh `yawning` + 300 `notyawning` (seed 0). **Ảnh do AI sinh** (prompt đa dạng tuổi, trang phục, bối cảnh), không phải người thật trong xe; ngoài ra là ảnh tĩnh.
+
+| Chỉ số | Giá trị |
+|---|---|
+| MediaPipe thấy mặt | yawning 89,0% · notyawning 99,3% |
+| MAR trung vị | yawning 0,684 · notyawning 0,009 |
+| AUC của MAR | 0,988 |
+| Ngưỡng cấu hình 0,40 | recall 0,933 (trên ảnh thấy mặt, ~0,83 tính cả ảnh mất mặt) · FPR 0,023 |
+| Ngưỡng 0,30 · 0,50 · 0,60 | recall 0,959 · 0,880 · 0,742; FPR 0,047 · 0,007 · 0,007 |
+
+Nhận xét: MAR phân biệt ngáp rất tốt trên ảnh sinh (AUC 0,988) và ngưỡng 0,40 là điểm cân bằng hợp lý; 0,50 gần như không báo giả nhưng mất thêm ~5% recall. Khớp thí nghiệm 4 (ảnh thật 800 ảnh). 11% ảnh ngáp mất mặt (miệng mở rộng + tay che) là hạn chế của MediaPipe, không phải của MAR. Hạn chế: ảnh AI sinh, miệng mở rộng nhiều hơn ngáp thật, nên số liệu có thể lạc quan. Không đổi tham số.
