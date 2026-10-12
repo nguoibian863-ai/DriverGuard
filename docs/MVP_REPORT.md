@@ -98,8 +98,8 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 ## 4. Giới hạn đã biết (chưa làm hoặc chưa chắc)
 
 - **Dấu của pitch chưa được kiểm chứng.** Quy ước góc từ ma trận MediaPipe có thể làm "cúi đầu" ra pitch âm. Đã có tham số `pitch_sign` trong `ai/config/thresholds.yaml` để đảo.
-- **Ngưỡng ngáp (MAR 0.60) và ROI điện thoại là ước lượng**, chưa hiệu chỉnh bằng dữ liệu thật. ROI mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay.
-- Chưa có: đánh giá trên dataset (NTHU-DDD, YawDD, State Farm), ONNX/TensorRT, Docker Compose, lưu snapshot (giới hạn 500 ảnh), âm thanh cảnh báo (mới có biểu ngữ trên giao diện), đồ thị FPS/latency.
+- **Ngưỡng ngáp đã chỉnh về MAR 0,40** theo các thí nghiệm 4, 5 và 13 (xem `docs/EXPERIMENT_LOG.md`). **ROI điện thoại vẫn là ước lượng**: mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay, và chưa xác nhận điện thoại nằm trong khung camera laptop.
+- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset và ảnh ngáp công khai (thí nghiệm 1–13). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, Docker Compose, lưu snapshot (giới hạn 500 ảnh), âm thanh cảnh báo (mới có biểu ngữ trên giao diện), đồ thị FPS/latency.
 - Endpoint danh sách phiên (`GET /sessions`, `/stop`) chưa làm; mỗi lần khởi động backend tạo một phiên.
 - Cảnh báo thị giác chỉ có trên dashboard; nút "Tắt tiếng" mới đặt cờ `muted` (chưa có tiếng để tắt).
 - Chỉ test được trên một máy (Windows 11, RTX 3050 4 GB). Một số test backend dùng chung một hàm test lớn do Codex viết.
@@ -131,3 +131,20 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 2. Thêm âm thanh cảnh báo và lưu snapshot sự kiện.
 3. Chạy đánh giá trên dataset công khai để có số liệu F1 và báo giả/phút.
 4. ONNX Runtime và đóng gói Docker Compose.
+
+## 8. Trạng thái hoàn thiện (cập nhật 2026-10-12)
+
+**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend, giao diện Tài xế, Giám sát và Camera, CI GitHub Actions (python + web), 13 thí nghiệm có ghi nhật ký. Kiểm thử: `pytest ai` 56, backend 5, web 17 đều đạt.
+
+**Chưa xong, vì cần phần cứng hoặc dữ liệu ngoài môi trường phát triển tự động:**
+
+| Việc | Cần | Cách làm |
+|---|---|---|
+| Kiểm chứng worker + pose fallback trên camera thật | Máy có camera | Khởi động lại backend, `python scripts/live_session.py --out docs/experiments/live_session_4.json --label EXP-014`, rồi `python scripts/score_live_session.py` |
+| Hạ `pose_yaw_ratio` 0,35 về 0,20–0,25 | Kết quả phiên trên | Chỉ đổi nếu phiên cabin cho thấy bỏ sót quay đầu mà không tăng báo giả |
+| Xác nhận ROI điện thoại | Camera thật | Chạy pha cầm điện thoại trong `live_session.py`, xem điện thoại có trong khung và `phone_detected` có lên không |
+| Đánh giá trên video NTHU-DDD / YawDD | Tải dữ liệu (cần đăng ký) | Đặt vào `data/raw/`, rồi viết script đánh giá tương tự `eval_video_pose.py` |
+| Người thử thứ hai, camera hồng ngoại | Người và thiết bị | Lặp lại phiên trên với người khác |
+| Tay rời vô lăng | Dữ liệu nhãn + hiệu chuẩn vùng vô lăng | Xem `docs/EXPERIMENT_LOG.md` mục 18; chưa đưa vào pipeline |
+
+Vì các mục trên chưa được kiểm chứng, **dự án đạt mức MVP chạy được và có số liệu trên dữ liệu công khai, chưa phải sản phẩm đã kiểm chứng ngoài đời thật.**

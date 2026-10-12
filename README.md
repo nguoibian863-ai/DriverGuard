@@ -26,8 +26,11 @@ Mô hình: `models/mediapipe/face_landmarker.task` (tải từ
 ```powershell
 .\.venv\Scripts\python.exe -m pytest ai -q                 # từ thư mục gốc
 cd apps\backend; ..\..\.venv\Scripts\python.exe -m pytest tests -q
-cd apps\web; npm run build
+cd apps\web; npm test; npm run lint; npm run build
 ```
 
 Lưu ý: không đặt dự án ở đường dẫn có dấu tiếng Việt nếu có thể; MediaPipe (C++) từng lỗi với
 đường dẫn như vậy (đã né bằng cách nạp mô hình từ bytes).
+
+CI: `.github/workflows/ci.yml` chạy test Python, lint, tsc, test và build web trên mỗi PR.
+Trạng thái dự án và việc còn lại: `docs/MVP_REPORT.md` mục 8.
