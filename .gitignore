@@ -16,3 +16,4 @@ models/*.pt
 *.log
 data/samples/portrait.jpg
 docs/experiments/web_video/frames/
+docs/experiments/hands_wheel/per_image.csv
