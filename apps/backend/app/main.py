@@ -8,10 +8,10 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.db.database import create_session, end_session, get_session, list_events, list_sessions
+from app.db.database import create_session, end_session, get_event, get_session, list_events, list_sessions
 from app.services.telemetry_bridge import TelemetryBridge
 from app.services.websocket_service import ConnectionManager
 
@@ -111,6 +111,18 @@ def mute(body: MuteRequest):
 @app.get("/api/v1/events")
 def events(limit: int = 50, session_id: str | None = None):
     return {"events": list_events(max(0, min(limit, 1000)), session_id)}
+
+
+@app.get("/api/v1/events/{event_id}/snapshot")
+def event_snapshot(event_id: str):
+    """Ảnh chụp lúc xảy ra sự kiện; 404 nếu sự kiện không có ảnh hoặc ảnh đã bị dọn theo FIFO."""
+    event = get_event(event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="event_not_found")
+    path = event.get("snapshot_path")
+    if not path or not Path(path).is_file():
+        raise HTTPException(status_code=404, detail="snapshot_not_found")
+    return FileResponse(path, media_type="image/jpeg")
 
 
 @app.get("/api/v1/sessions")

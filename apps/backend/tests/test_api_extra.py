@@ -97,3 +97,47 @@ def test_calibrate_route_not_shadowed_by_session_detail(tmp_path, monkeypatch):
     monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
     with TestClient(app) as client:
         assert client.post("/api/v1/sessions/calibrate").json() == {"ok": True}
+
+
+def test_su_kien_duoc_gan_anh_va_tai_duoc_qua_api(tmp_path, monkeypatch):
+    from app.services.snapshot_store import SnapshotStore
+
+    monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
+    jpeg = b"\xff\xd8\xff" + b"z" * 300
+    with TestClient(app) as client:
+        app.state.bridge.snapshots = SnapshotStore(tmp_path / "snaps")
+        app.state.bridge.frame = jpeg
+        app.state.bridge.process_telemetry(_telemetry(events=[{
+            "event_type": "DROWSINESS_ACUTE", "started_at": "2026-10-05T08:00:00+00:00",
+            "duration_ms": 1800, "risk_score": 90.0, "risk_level": "DANGER",
+            "confidence": 0.9, "reason": "test",
+        }]))
+
+        event = client.get("/api/v1/events").json()["events"][0]
+        assert event["snapshot_path"]
+
+        response = client.get(f"/api/v1/events/{event['id']}/snapshot")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/jpeg"
+        assert response.content == jpeg
+
+        assert client.get("/api/v1/events/khong-co/snapshot").status_code == 404
+
+
+def test_su_kien_van_duoc_ghi_khi_chua_co_khung_hinh(tmp_path, monkeypatch):
+    from app.services.snapshot_store import SnapshotStore
+
+    monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
+    with TestClient(app) as client:
+        app.state.bridge.snapshots = SnapshotStore(tmp_path / "snaps")
+        app.state.bridge.frame = None
+        app.state.bridge.process_telemetry(_telemetry(events=[{
+            "event_type": "YAWNING", "started_at": "2026-10-05T08:00:00+00:00",
+            "duration_ms": 2000, "risk_score": 40.0, "risk_level": "WARNING",
+            "confidence": 0.9, "reason": "test",
+        }]))
+
+        event = client.get("/api/v1/events").json()["events"][0]
+        assert event["event_type"] == "YAWNING"
+        assert event["snapshot_path"] is None
+        assert client.get(f"/api/v1/events/{event['id']}/snapshot").status_code == 404

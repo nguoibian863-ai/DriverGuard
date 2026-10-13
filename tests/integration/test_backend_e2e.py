@@ -35,9 +35,11 @@ def _free_port() -> int:
 def server(tmp_path_factory):
     """Khởi động uvicorn trong tiến trình riêng; worker chạy kịch bản mô phỏng."""
     port = _free_port()
+    workdir = tmp_path_factory.mktemp("db")
     env = {
         **os.environ,
-        "DRIVERGUARD_DB": str(tmp_path_factory.mktemp("db") / "e2e.db"),
+        "DRIVERGUARD_DB": str(workdir / "e2e.db"),
+        "DRIVERGUARD_SNAPSHOT_DIR": str(workdir / "snapshots"),
         "DRIVERGUARD_SIMULATE": "1",
         "DRIVERGUARD_START_WORKER": "1",
         "PYTHONPATH": os.pathsep.join([str(ROOT), str(BACKEND)]),
@@ -123,6 +125,23 @@ def test_kich_ban_sinh_su_kien_va_gan_dung_phien(server):
     scoped = httpx.get(f"{base}/api/v1/events", params={"session_id": session_id}, timeout=5.0).json()["events"]
     assert len(scoped) == len(events)
     assert httpx.get(f"{base}/api/v1/events", params={"session_id": "khong-ton-tai"}, timeout=5.0).json()["events"] == []
+
+
+def test_su_kien_co_anh_chup_tai_duoc(server):
+    """Sự kiện sinh ra khi worker đang chạy phải kèm ảnh JPEG tải được qua API."""
+    base, _ = server
+    events = _wait(lambda: httpx.get(f"{base}/api/v1/events", timeout=5.0).json()["events"], timeout=75.0)
+    assert events, "không sinh được sự kiện nào"
+
+    with_snapshot = [e for e in events if e.get("snapshot_path")]
+    assert with_snapshot, "không sự kiện nào được gắn ảnh chụp"
+
+    response = httpx.get(f"{base}/api/v1/events/{with_snapshot[0]['id']}/snapshot", timeout=10.0)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert response.content.startswith(b"\xff\xd8\xff")
+
+    assert httpx.get(f"{base}/api/v1/events/khong-ton-tai/snapshot", timeout=5.0).status_code == 404
 
 
 def test_mjpeg_tra_ve_khung_jpeg(server):

@@ -42,7 +42,7 @@ def insert_event(event, session_id=None):
 
 
 def list_events(limit=50, session_id=None):
-    query = "SELECT id, session_id, event_type, started_at, duration_ms, risk_score, risk_level, confidence, reason FROM events"
+    query = "SELECT id, session_id, event_type, started_at, duration_ms, risk_score, risk_level, confidence, reason, snapshot_path FROM events"
     params = []
     if session_id:
         query += " WHERE session_id = ?"
@@ -61,6 +61,12 @@ def list_sessions(limit=50):
 def get_session(session_id):
     with _connect() as db:
         row = db.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def get_event(event_id):
+    with _connect() as db:
+        row = db.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
     return dict(row) if row else None
 
 

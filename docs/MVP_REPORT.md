@@ -99,7 +99,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 - **Dấu của pitch đã được kiểm chứng** trên tập FORM (thí nghiệm 14): cúi đầu cho pitch dương, khớp `pitch_sign: 1.0`. Pipeline đã bỏ qua EAR khi cúi (sau hiệu chuẩn).
 - **Ngưỡng ngáp đã chỉnh về MAR 0,40** theo các thí nghiệm 4, 5 và 13 (xem `docs/EXPERIMENT_LOG.md`). **ROI điện thoại vẫn là ước lượng**: mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay, và chưa xác nhận điện thoại nằm trong khung camera laptop.
-- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset, ảnh ngáp công khai và FORM (thí nghiệm 1–14). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, lưu snapshot (giới hạn 500 ảnh), đồ thị FPS/latency.
+- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset, ảnh ngáp công khai và FORM (thí nghiệm 1–14). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, đồ thị FPS/latency.
 - ~~Endpoint danh sách phiên chưa làm~~: đã có `GET /api/v1/sessions`, `/sessions/current`, `/sessions/{id}` và `POST /sessions/stop` (chốt thống kê rồi mở phiên mới); `GET /events` lọc được theo `session_id`.
 - ~~Chưa có âm thanh~~: đã có cảnh báo âm thanh Web Audio theo mức (`lib/useAlertSound.ts`), leo thang sau 5 s ở mức DANGER, và nút "Tắt tiếng" tắt thật qua cờ `muted`.
 - Chỉ test được trên một máy (Windows 11, RTX 3050 4 GB) cho chế độ camera thật. Chế độ mô phỏng có kiểm thử đầu-cuối tự động (`tests/integration`, chạy trong CI).
@@ -128,15 +128,20 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 ## 7. Đề xuất bước tiếp theo
 
 1. Sếp thử với người thật (mục 6), tôi chỉnh ngưỡng theo kết quả. **Còn lại.**
-2. ~~Thêm âm thanh cảnh báo~~ đã xong; lưu snapshot sự kiện **còn lại**.
+2. ~~Thêm âm thanh cảnh báo và lưu snapshot sự kiện~~ đã xong.
 3. ~~Chạy đánh giá trên dataset công khai~~ đã xong (thí nghiệm 1–14); còn thiếu video NTHU-DDD/YawDD để có độ trễ và báo giả/phút.
 4. ~~Đóng gói Docker Compose~~ đã viết (chưa build thử); ONNX Runtime **còn lại**.
 
 ## 8. Trạng thái hoàn thiện (cập nhật 2026-10-13)
 
-**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend (có vòng đời phiên), giao diện Tài xế, Giám sát và Camera kèm cảnh báo âm thanh, CI GitHub Actions (python + web + e2e), 14 thí nghiệm có ghi nhật ký.
-Kiểm thử: `pytest ai` 57, backend 7, e2e 6, web 17 đều đạt.
+**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend (có vòng đời phiên), giao diện Tài xế, Giám sát và Camera kèm cảnh báo âm thanh và ảnh chụp sự kiện, CI GitHub Actions (python + web + e2e), 14 thí nghiệm có ghi nhật ký.
+Kiểm thử: `pytest ai` 57, backend 15, e2e 7, web 17 đều đạt.
 Đóng gói: `docker-compose.yml` + Dockerfile cho backend và web (mặc định chế độ mô phỏng). **Chỉ mới kiểm `docker compose config`, chưa build được image** vì môi trường phát triển không có Docker daemon.
+
+**Ảnh chụp sự kiện (snapshot)**: mỗi sự kiện lưu khung hình JPEG gần nhất vào `data/snapshots/`,
+giữ tối đa 500 ảnh **hoặc** 1 GB rồi xóa cũ nhất theo FIFO (đúng `docs/design/07_API_AND_DATA_MODEL.md` mục 4);
+metadata sự kiện trong SQLite không bị xóa. Xem ảnh qua `GET /api/v1/events/{id}/snapshot`, hiện trong drawer ở `/monitor`.
+Tắt bằng `DRIVERGUARD_SNAPSHOTS=0`, đổi thư mục bằng `DRIVERGUARD_SNAPSHOT_DIR`.
 
 **Chưa xong, vì cần phần cứng hoặc dữ liệu ngoài môi trường phát triển tự động:**
 
