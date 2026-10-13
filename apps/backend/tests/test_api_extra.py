@@ -53,3 +53,47 @@ def test_mute_rejects_invalid_duration(tmp_path, monkeypatch):
     monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
     with TestClient(app) as client:
         assert client.post("/api/v1/alerts/mute", json={"duration_seconds": 0}).status_code == 422
+
+
+def test_sessions_list_detail_and_stop(tmp_path, monkeypatch):
+    monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
+    with TestClient(app) as client:
+        current = client.get("/api/v1/sessions/current").json()
+        assert current["status"] == "active"
+
+        app.state.bridge.process_telemetry(_telemetry(events=[{
+            "event_type": "YAWNING", "started_at": "2026-10-05T08:00:00+00:00",
+            "duration_ms": 2000, "risk_score": 40.0, "risk_level": "WARNING",
+            "confidence": 0.9, "reason": "test",
+        }]))
+
+        # chỉ lấy sự kiện của phiên hiện tại
+        scoped = client.get("/api/v1/events", params={"session_id": current["id"]}).json()["events"]
+        assert len(scoped) == 1 and scoped[0]["event_type"] == "YAWNING"
+        assert client.get("/api/v1/events", params={"session_id": "khong-co"}).json()["events"] == []
+
+        stopped = client.post("/api/v1/sessions/stop").json()
+        assert stopped["stopped"]["status"] == "COMPLETED"
+        assert stopped["stopped"]["event_count"] == 1
+        assert stopped["stopped"]["max_risk"] == 40.0
+        assert stopped["current"]["id"] != current["id"]
+
+        # phiên mới nhận sự kiện tiếp theo, phiên cũ giữ nguyên
+        app.state.bridge.process_telemetry(_telemetry(events=[{
+            "event_type": "LOOKING_AWAY", "started_at": "2026-10-05T08:01:00+00:00",
+            "duration_ms": 2000, "risk_score": 60.0, "risk_level": "WARNING",
+            "confidence": 0.9, "reason": "test",
+        }]))
+        assert len(client.get("/api/v1/events", params={"session_id": stopped["current"]["id"]}).json()["events"]) == 1
+        assert len(client.get("/api/v1/events", params={"session_id": current["id"]}).json()["events"]) == 1
+
+        listed = client.get("/api/v1/sessions").json()["sessions"]
+        assert len(listed) == 2
+        assert client.get(f"/api/v1/sessions/{current['id']}").json()["event_count"] == 1
+        assert client.get("/api/v1/sessions/khong-co").status_code == 404
+
+
+def test_calibrate_route_not_shadowed_by_session_detail(tmp_path, monkeypatch):
+    monkeypatch.setenv("DRIVERGUARD_DB", str(tmp_path / "t.db"))
+    with TestClient(app) as client:
+        assert client.post("/api/v1/sessions/calibrate").json() == {"ok": True}

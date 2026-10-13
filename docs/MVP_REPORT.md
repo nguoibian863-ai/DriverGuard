@@ -99,10 +99,10 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 - **Dấu của pitch đã được kiểm chứng** trên tập FORM (thí nghiệm 14): cúi đầu cho pitch dương, khớp `pitch_sign: 1.0`. Pipeline đã bỏ qua EAR khi cúi (sau hiệu chuẩn).
 - **Ngưỡng ngáp đã chỉnh về MAR 0,40** theo các thí nghiệm 4, 5 và 13 (xem `docs/EXPERIMENT_LOG.md`). **ROI điện thoại vẫn là ước lượng**: mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay, và chưa xác nhận điện thoại nằm trong khung camera laptop.
-- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset và ảnh ngáp công khai (thí nghiệm 1–13). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, Docker Compose, lưu snapshot (giới hạn 500 ảnh), âm thanh cảnh báo (mới có biểu ngữ trên giao diện), đồ thị FPS/latency.
-- Endpoint danh sách phiên (`GET /sessions`, `/stop`) chưa làm; mỗi lần khởi động backend tạo một phiên.
-- Cảnh báo thị giác chỉ có trên dashboard; nút "Tắt tiếng" mới đặt cờ `muted` (chưa có tiếng để tắt).
-- Chỉ test được trên một máy (Windows 11, RTX 3050 4 GB). Một số test backend dùng chung một hàm test lớn do Codex viết.
+- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset, ảnh ngáp công khai và FORM (thí nghiệm 1–14). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, lưu snapshot (giới hạn 500 ảnh), đồ thị FPS/latency.
+- ~~Endpoint danh sách phiên chưa làm~~: đã có `GET /api/v1/sessions`, `/sessions/current`, `/sessions/{id}` và `POST /sessions/stop` (chốt thống kê rồi mở phiên mới); `GET /events` lọc được theo `session_id`.
+- ~~Chưa có âm thanh~~: đã có cảnh báo âm thanh Web Audio theo mức (`lib/useAlertSound.ts`), leo thang sau 5 s ở mức DANGER, và nút "Tắt tiếng" tắt thật qua cờ `muted`.
+- Chỉ test được trên một máy (Windows 11, RTX 3050 4 GB) cho chế độ camera thật. Chế độ mô phỏng có kiểm thử đầu-cuối tự động (`tests/integration`, chạy trong CI).
 
 ## 5. Rủi ro
 
@@ -127,14 +127,16 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 ## 7. Đề xuất bước tiếp theo
 
-1. Sếp thử với người thật (mục 6), tôi chỉnh ngưỡng theo kết quả.
-2. Thêm âm thanh cảnh báo và lưu snapshot sự kiện.
-3. Chạy đánh giá trên dataset công khai để có số liệu F1 và báo giả/phút.
-4. ONNX Runtime và đóng gói Docker Compose.
+1. Sếp thử với người thật (mục 6), tôi chỉnh ngưỡng theo kết quả. **Còn lại.**
+2. ~~Thêm âm thanh cảnh báo~~ đã xong; lưu snapshot sự kiện **còn lại**.
+3. ~~Chạy đánh giá trên dataset công khai~~ đã xong (thí nghiệm 1–14); còn thiếu video NTHU-DDD/YawDD để có độ trễ và báo giả/phút.
+4. ~~Đóng gói Docker Compose~~ đã viết (chưa build thử); ONNX Runtime **còn lại**.
 
-## 8. Trạng thái hoàn thiện (cập nhật 2026-10-12)
+## 8. Trạng thái hoàn thiện (cập nhật 2026-10-13)
 
-**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend, giao diện Tài xế, Giám sát và Camera, CI GitHub Actions (python + web), 13 thí nghiệm có ghi nhật ký. Kiểm thử: `pytest ai` 56, backend 5, web 17 đều đạt.
+**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend (có vòng đời phiên), giao diện Tài xế, Giám sát và Camera kèm cảnh báo âm thanh, CI GitHub Actions (python + web + e2e), 14 thí nghiệm có ghi nhật ký.
+Kiểm thử: `pytest ai` 57, backend 7, e2e 6, web 17 đều đạt.
+Đóng gói: `docker-compose.yml` + Dockerfile cho backend và web (mặc định chế độ mô phỏng). **Chỉ mới kiểm `docker compose config`, chưa build được image** vì môi trường phát triển không có Docker daemon.
 
 **Chưa xong, vì cần phần cứng hoặc dữ liệu ngoài môi trường phát triển tự động:**
 
@@ -146,5 +148,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 | Đánh giá trên video NTHU-DDD / YawDD | Tải dữ liệu (cần đăng ký) | Đặt vào `data/raw/`, rồi viết script đánh giá tương tự `eval_video_pose.py` |
 | Người thử thứ hai, camera hồng ngoại | Người và thiết bị | Lặp lại phiên trên với người khác |
 | Tay rời vô lăng | Dữ liệu nhãn + hiệu chuẩn vùng vô lăng | Xem `docs/EXPERIMENT_LOG.md` mục 18; chưa đưa vào pipeline |
+| Build image Docker | Máy có Docker daemon | `docker compose up --build`; compose đã hợp lệ nhưng chưa build thử |
+| FPS ≥ 20 (UR-15) | Camera + GPU thật | Đo lại sau khi tối ưu; cân nhắc ONNX Runtime |
 
 Vì các mục trên chưa được kiểm chứng, **dự án đạt mức MVP chạy được và có số liệu trên dữ liệu công khai, chưa phải sản phẩm đã kiểm chứng ngoài đời thật.**

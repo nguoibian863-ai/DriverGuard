@@ -32,5 +32,16 @@ cd apps\web; npm test; npm run lint; npm run build
 Lưu ý: không đặt dự án ở đường dẫn có dấu tiếng Việt nếu có thể; MediaPipe (C++) từng lỗi với
 đường dẫn như vậy (đã né bằng cách nạp mô hình từ bytes).
 
-CI: `.github/workflows/ci.yml` chạy test Python, lint, tsc, test và build web trên mỗi PR.
+## Chạy bằng Docker (chế độ mô phỏng, không cần camera)
+```bash
+docker compose up --build     # web http://localhost:3000, API http://localhost:8000
+```
+Lưu ý: compose đã được kiểm cú pháp nhưng **chưa build thử image**.
+
+## Kiểm thử đầu-cuối (không cần camera)
+```bash
+python -m pytest tests/integration -q     # chạy uvicorn thật + AI worker mô phỏng
+```
+
+CI: `.github/workflows/ci.yml` chạy test Python, e2e, lint, tsc, test và build web trên mỗi PR.
 Trạng thái dự án và việc còn lại: `docs/MVP_REPORT.md` mục 8.
