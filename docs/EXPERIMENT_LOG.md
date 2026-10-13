@@ -624,3 +624,45 @@ YOLO điện thoại (thí nghiệm 1 đo yolo26x 55,6 ms/khung) và YOLO pose c
 Người thử ngồi trước webcam trong nhà, không phải trong xe; đây là video người **tỉnh táo** nên chỉ đo được báo giả,
 không đo được khả năng bắt buồn ngủ thật (phần đó xem thí nghiệm 16). Nhãn là *nháy mắt*, nên mọi đoạn mắt híp kéo dài
 đều không có nhãn và bị tính là báo giả, tức con số 0,025 lần/phút là **ước lượng thận trọng** (có thể tốt hơn thực tế).
+
+## 23. Thí nghiệm 16 (EXP-016): phân biệt TỈNH TÁO và MỆT MỎI trên video người thật (DF-vediodataset)
+
+Ghi ngày 2026-10-13 (Claude, container, CPU). Mã: `scripts/eval_df_video.py`; số liệu: `docs/experiments/df_video.json`.
+Dữ liệu: `DF-vediodataset` part1–4 (figshare 33100853/33102506/33103226/33107144, **CC BY 4.0**), video mô phỏng lái tàu
+của 15 tình nguyện viên, tên tệp gắn nhãn 清醒 (tỉnh táo) hoặc 疲劳 (mệt mỏi). Đã tải **3 người có cả hai trạng thái**
+(8 tệp, ~250 MB): tỉnh táo 10,2 phút, mệt mỏi 21,9 phút, 30 FPS, xử lý mỗi 2 khung (tương đương 15 FPS).
+Chạy pipeline thật với ngưỡng đang dùng, không chỉnh gì.
+
+Thí nghiệm 15 đo **báo giả trên người tỉnh táo**; thí nghiệm này đo **khả năng phân biệt** khi có người mệt thật.
+
+### 23.1 Kết quả
+| Chỉ số | Tỉnh táo (4 video, 10,2 phút) | Mệt mỏi (4 video, 21,9 phút) |
+|---|---|---|
+| Thấy mặt | 100% | 98–100% |
+| EAR trung vị | 0,264 | 0,123 |
+| PERCLOS | **0,000** | 0,203 |
+| Tỉ lệ khung có cờ ngáp | **0,0000** | 0,0096 |
+| `DROWSINESS_ACUTE` | **0** (0,00/phút) | 76 (3,48/phút) |
+| `CHRONIC_FATIGUE` | **0** | 22 |
+
+**Phân tách hoàn toàn ở mức video: 4/4 video mệt mỏi đều báo, 4/4 video tỉnh táo không báo lần nào.**
+PERCLOS bằng đúng 0,000 ở cả bốn video tỉnh táo, trong khi video mệt mỏi từ 0,028 đến 0,832.
+Ngáp cũng theo hướng đó: 0 ở mọi video tỉnh táo, xuất hiện ở 3/4 video mệt mỏi (cao nhất 3,0% số khung).
+
+### 23.2 Nhận xét
+1. **Hai thí nghiệm bổ sung nhau.** Gộp lại: 50 phút video người tỉnh táo (10,2 phút ở đây + 39,6 phút eyeblink8)
+   chỉ sinh **1** báo giả `DROWSINESS_ACUTE`, tức **0,02 lần/phút**; còn mọi video người mệt đều được bắt.
+2. **Cooldown gộp sự kiện dài.** Video `子龙疲劳2` có PERCLOS 0,832 (người gần như ngủ hẳn, EAR trung vị 0,016)
+   nhưng chỉ sinh 7 sự kiện, ít hơn video mệt nhẹ hơn (`子龙疲劳1`, PERCLOS 0,078, 29 sự kiện). Nhắm mắt liên tục
+   bị gộp thành một sự kiện dài nên **đếm số sự kiện không phải thước đo mức độ nặng**; PERCLOS mới là thước đo đúng.
+   Đây là hành vi đúng thiết kế, nhưng cần nhớ khi đọc bảng sự kiện ở `/monitor`.
+3. `YAWNING` không phải loại sự kiện riêng theo `docs/design/07_API_AND_DATA_MODEL.md` (nó nuôi `CHRONIC_FATIGUE`
+   và cờ telemetry), nên đếm sự kiện luôn ra 0 — phải đọc cột "tỉ lệ khung có cờ ngáp".
+4. Tốc độ xử lý 11,4–12,7 ms/khung, khớp với 10,9 ms đo ở thí nghiệm 15.
+
+### 23.3 Hạn chế
+- Nhãn gắn cho **cả video**, không theo từng thời điểm, nên **không tính được độ trễ phát hiện** từ tập này.
+- Bối cảnh là phòng mô phỏng lái tàu, không phải cabin ô tô; ánh sáng tốt, mặt chính diện, không có kính râm hay hồng ngoại.
+- Chỉ 3 người và 10,2 phút ở nhóm tỉnh táo; hai video `子龙清醒` chỉ dài 0,2 phút mỗi video.
+- Ghép cặp cùng người dựa theo tên tệp; riêng cặp `胡琴林` đã xem ảnh xác nhận đúng một người, cùng phòng.
+- Video mệt mỏi có đoạn nhắm mắt rất dài nên bài toán dễ hơn thực tế lái xe.

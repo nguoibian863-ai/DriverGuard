@@ -12,7 +12,7 @@
   "ear_median": 0.264,
   "DROWSINESS_ACUTE": 0,
   "DROWSINESS_ACUTE_per_min": 0.0,
-  "YAWNING": 0,
+  "yawn_frac": 0.0,
   "CHRONIC_FATIGUE": 0
  },
  "fatigue": {
@@ -22,7 +22,7 @@
   "ear_median": 0.123,
   "DROWSINESS_ACUTE": 76,
   "DROWSINESS_ACUTE_per_min": 3.475,
-  "YAWNING": 0,
+  "yawn_frac": 0.0096,
   "CHRONIC_FATIGUE": 22
  },
  "per_video": [
@@ -36,9 +36,10 @@
    "ear_p10": 0.142,
    "mar_p95": 0.019,
    "perclos": 0.0,
+   "yawn_frac": 0.0,
    "events": {},
    "events_per_min": {},
-   "ms_per_frame": 12.2
+   "ms_per_frame": 10.1
   },
   {
    "video": "子龙清醒2.mp4",
@@ -50,9 +51,10 @@
    "ear_p10": 0.172,
    "mar_p95": 0.014,
    "perclos": 0.0,
+   "yawn_frac": 0.0,
    "events": {},
    "events_per_min": {},
-   "ms_per_frame": 12.7
+   "ms_per_frame": 10.8
   },
   {
    "video": "子龙疲劳1.mp4",
@@ -64,6 +66,7 @@
    "ear_p10": 0.022,
    "mar_p95": 0.021,
    "perclos": 0.0784,
+   "yawn_frac": 0.0,
    "events": {
     "DROWSINESS_ACUTE": 29,
     "CHRONIC_FATIGUE": 6,
@@ -74,7 +77,7 @@
     "CHRONIC_FATIGUE": 1.085,
     "LOOKING_AWAY": 0.181
    },
-   "ms_per_frame": 11.8
+   "ms_per_frame": 10.3
   },
   {
    "video": "子龙疲劳2.mp4",
@@ -86,6 +89,7 @@
    "ear_p10": 0.013,
    "mar_p95": 0.079,
    "perclos": 0.832,
+   "yawn_frac": 0.0003,
    "events": {
     "DROWSINESS_ACUTE": 7,
     "CHRONIC_FATIGUE": 4
@@ -94,7 +98,7 @@
     "DROWSINESS_ACUTE": 1.9,
     "CHRONIC_FATIGUE": 1.086
    },
-   "ms_per_frame": 11.9
+   "ms_per_frame": 10.4
   },
   {
    "video": "胡琴林_清醒.mp4",
@@ -106,9 +110,10 @@
    "ear_p10": 0.219,
    "mar_p95": 0.106,
    "perclos": 0.0,
+   "yawn_frac": 0.0,
    "events": {},
    "events_per_min": {},
-   "ms_per_frame": 11.7
+   "ms_per_frame": 10.2
   },
   {
    "video": "胡琴林_疲劳.mp4",
@@ -120,6 +125,7 @@
    "ear_p10": 0.077,
    "mar_p95": 0.494,
    "perclos": 0.0277,
+   "yawn_frac": 0.03,
    "events": {
     "DROWSINESS_ACUTE": 6,
     "CHRONIC_FATIGUE": 3,
@@ -130,7 +136,7 @@
     "CHRONIC_FATIGUE": 0.861,
     "LOOKING_DOWN": 0.574
    },
-   "ms_per_frame": 11.7
+   "ms_per_frame": 10.6
   },
   {
    "video": "鹏飞_疲劳.mp4",
@@ -142,6 +148,7 @@
    "ear_p10": 0.014,
    "mar_p95": 0.158,
    "perclos": 0.0928,
+   "yawn_frac": 0.0114,
    "events": {
     "DROWSINESS_ACUTE": 34,
     "CHRONIC_FATIGUE": 9,
@@ -152,7 +159,7 @@
     "CHRONIC_FATIGUE": 0.98,
     "LOOKING_AWAY": 0.218
    },
-   "ms_per_frame": 11.8
+   "ms_per_frame": 11.1
   },
   {
    "video": "鹏飞哥清醒视频.mp4",
@@ -164,9 +171,10 @@
    "ear_p10": 0.13,
    "mar_p95": 0.086,
    "perclos": 0.0,
+   "yawn_frac": 0.0,
    "events": {},
    "events_per_min": {},
-   "ms_per_frame": 11.4
+   "ms_per_frame": 11.0
   }
  ]
 }

@@ -99,7 +99,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 - **Dấu của pitch đã được kiểm chứng** trên tập FORM (thí nghiệm 14): cúi đầu cho pitch dương, khớp `pitch_sign: 1.0`. Pipeline đã bỏ qua EAR khi cúi (sau hiệu chuẩn).
 - **Ngưỡng ngáp đã chỉnh về MAR 0,40** theo các thí nghiệm 4, 5 và 13 (xem `docs/EXPERIMENT_LOG.md`). **ROI điện thoại vẫn là ước lượng**: mới dùng vùng quanh mặt/ngực, chưa dùng ROI bàn tay, và chưa xác nhận điện thoại nằm trong khung camera laptop.
-- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset, ảnh ngáp công khai và FORM (thí nghiệm 1–14). Chưa có: NTHU-DDD/YawDD dạng video, ONNX/TensorRT, đồ thị FPS/latency.
+- Đã có đánh giá trên State Farm, COCO, Pointing'04, Driver Drowsiness Dataset, ảnh ngáp công khai và FORM (thí nghiệm 1–14). Đã đo trên video có nhãn thời gian (eyeblink8 40 phút, DF-vediodataset 32 phút). Chưa có: NTHU-DDD/YawDD, ONNX/TensorRT, đồ thị FPS/latency.
 - ~~Endpoint danh sách phiên chưa làm~~: đã có `GET /api/v1/sessions`, `/sessions/current`, `/sessions/{id}` và `POST /sessions/stop` (chốt thống kê rồi mở phiên mới); `GET /events` lọc được theo `session_id`.
 - ~~Chưa có âm thanh~~: đã có cảnh báo âm thanh Web Audio theo mức (`lib/useAlertSound.ts`), leo thang sau 5 s ở mức DANGER, và nút "Tắt tiếng" tắt thật qua cờ `muted`.
 - Chỉ test được trên một máy (Windows 11, RTX 3050 4 GB) cho chế độ camera thật. Chế độ mô phỏng có kiểm thử đầu-cuối tự động (`tests/integration`, chạy trong CI).
@@ -108,7 +108,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 | Rủi ro | Mức | Ghi chú |
 |---|---|---|
-| Báo giả/bỏ sót ngoài đời thật | Cao | Chưa đo F1, độ trễ phát hiện, báo giả/phút trên dữ liệu thật (Phase 8). |
+| Báo giả/bỏ sót ngoài đời thật | **Trung bình** | Đã đo trên 50 phút video người thật (thí nghiệm 15–16): **0,02 báo giả/phút**, phân tách hoàn toàn tỉnh táo vs mệt mỏi ở mức video. Chưa đo **độ trễ phát hiện** (nhãn theo cả video) và chưa đo trong cabin ô tô. |
 | Kính râm, thiếu sáng, đội mũ | Cao | MediaPipe mất mặt → `DRIVER_ABSENCE`. Chưa có chế độ hồng ngoại. |
 | Repo GitHub đang **public** | Trung bình | Sếp cần quyết định đổi sang private hay không. |
 | Đường dẫn dự án có dấu tiếng Việt | Thấp | Đã né cho MediaPipe; thư viện khác có thể gặp lỗi tương tự. |
@@ -129,14 +129,28 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 1. Sếp thử với người thật (mục 6), tôi chỉnh ngưỡng theo kết quả. **Còn lại.**
 2. ~~Thêm âm thanh cảnh báo và lưu snapshot sự kiện~~ đã xong.
-3. ~~Chạy đánh giá trên dataset công khai~~ đã xong (thí nghiệm 1–14); còn thiếu video NTHU-DDD/YawDD để có độ trễ và báo giả/phút.
+3. ~~Chạy đánh giá trên dataset công khai, gồm cả video để có báo giả/phút~~ đã xong (thí nghiệm 1–16). Còn thiếu: **độ trễ phát hiện** (cần video có nhãn theo mốc thời gian) và dữ liệu trong cabin ô tô.
 4. ~~Đóng gói Docker Compose~~ đã viết (chưa build thử); ONNX Runtime **còn lại**.
 
 ## 8. Trạng thái hoàn thiện (cập nhật 2026-10-13)
 
-**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend (có vòng đời phiên), giao diện Tài xế, Giám sát và Camera kèm cảnh báo âm thanh và ảnh chụp sự kiện, CI GitHub Actions (python + web + e2e), 14 thí nghiệm có ghi nhật ký.
+**Đã xong:** pipeline AI (EAR, MAR, tư thế đầu, điện thoại, pose fallback đang BẬT), engine rủi ro, backend (có vòng đời phiên), giao diện Tài xế, Giám sát và Camera kèm cảnh báo âm thanh và ảnh chụp sự kiện, CI GitHub Actions (python + web + e2e), 16 thí nghiệm có ghi nhật ký.
 Kiểm thử: `pytest ai` 57, backend 15, e2e 7, web 17 đều đạt.
 Đóng gói: `docker-compose.yml` + Dockerfile cho backend và web (mặc định chế độ mô phỏng). **Chỉ mới kiểm `docker compose config`, chưa build được image** vì môi trường phát triển không có Docker daemon.
+
+**Số liệu trên video (thí nghiệm 15–16, 2026-10-13)** — lần đầu dự án có số đo theo thời gian trên video dài:
+
+| Chỉ số | Giá trị | Nguồn |
+|---|---|---|
+| Báo giả `DROWSINESS_ACUTE` | **0,02 lần/phút** (1 lần trong 50 phút video người tỉnh táo) | eyeblink8 + DF |
+| Phân biệt tỉnh táo vs mệt mỏi | **4/4 video mệt đều báo, 4/4 video tỉnh táo không báo** | DF-vediodataset |
+| PERCLOS | 0,000 khi tỉnh táo · 0,203 khi mệt mỏi | DF-vediodataset |
+| Bắt được lần nháy mắt | 93,1% trên 404 lần có nhãn | eyeblink8 |
+| Thấy mặt | 99,8% | eyeblink8 |
+| Tốc độ pipeline | **10,9 ms/khung (~92 FPS) trên CPU** | eyeblink8 |
+
+Điểm yếu tìm được: **cười to làm mắt híp, EAR tụt như nhắm mắt** → đây là nguồn báo giả duy nhất trong 50 phút.
+Chưa sửa (xem `docs/EXPERIMENT_LOG.md` mục 22.2). Vì pipeline đạt ~92 FPS trên CPU, **nút thắt FPS 15 không nằm ở MediaPipe**.
 
 **Ảnh chụp sự kiện (snapshot)**: mỗi sự kiện lưu khung hình JPEG gần nhất vào `data/snapshots/`,
 giữ tối đa 500 ảnh **hoặc** 1 GB rồi xóa cũ nhất theo FIFO (đúng `docs/design/07_API_AND_DATA_MODEL.md` mục 4);
@@ -150,10 +164,11 @@ Tắt bằng `DRIVERGUARD_SNAPSHOTS=0`, đổi thư mục bằng `DRIVERGUARD_SN
 | Kiểm chứng worker + pose fallback trên camera thật | Máy có camera | Khởi động lại backend, `python scripts/live_session.py --out docs/experiments/live_session_4.json --label EXP-014`, rồi `python scripts/score_live_session.py` |
 | Hạ `pose_yaw_ratio` 0,35 về 0,20–0,25 | Kết quả phiên trên | Chỉ đổi nếu phiên cabin cho thấy bỏ sót quay đầu mà không tăng báo giả |
 | Xác nhận ROI điện thoại trên camera của sếp | Camera thật | Trên FORM (thí nghiệm 14) ROI ổn (68/69 ca có hộp) nhưng YOLO chỉ thấy 69% ca áp tai, 0% ca nhắn tin nhìn xuống; chạy pha điện thoại trong `live_session.py` để xác nhận trên camera laptop; thử `DRIVERGUARD_YOLO_CONF=0.10` (mặc định 0,25) trên video |
-| Đánh giá trên video NTHU-DDD / YawDD | Tải dữ liệu (cần đăng ký) | Đặt vào `data/raw/`, rồi viết script đánh giá tương tự `eval_video_pose.py` |
+| Độ trễ phát hiện trên video | Video có nhãn theo mốc thời gian (NTHU-DDD/YawDD cần đăng ký) | DF và eyeblink8 chỉ có nhãn theo cả video hoặc theo lần nháy, nên chưa tính được độ trễ |
+| Lọc báo giả khi cười | Dữ liệu có nhiều ca cười | Thêm chỉ số độ rộng miệng hoặc blendshape `mouthSmile`, xem mục 22.2 |
 | Người thử thứ hai, camera hồng ngoại | Người và thiết bị | Lặp lại phiên trên với người khác |
 | Tay rời vô lăng | Dữ liệu nhãn + hiệu chuẩn vùng vô lăng | Xem `docs/EXPERIMENT_LOG.md` mục 18; chưa đưa vào pipeline |
 | Build image Docker | Máy có Docker daemon | `docker compose up --build`; compose đã hợp lệ nhưng chưa build thử |
-| FPS ≥ 20 (UR-15) | Camera + GPU thật | Đo lại sau khi tối ưu; cân nhắc ONNX Runtime |
+| FPS ≥ 20 (UR-15) | Camera thật | Pipeline face đã ~92 FPS trên CPU (thí nghiệm 15), nên đo riêng khâu đọc camera và YOLO điện thoại/pose để tìm nút thắt thật |
 
 Vì các mục trên chưa được kiểm chứng, **dự án đạt mức MVP chạy được và có số liệu trên dữ liệu công khai, chưa phải sản phẩm đã kiểm chứng ngoài đời thật.**
