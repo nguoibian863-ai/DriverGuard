@@ -583,3 +583,44 @@ Quét độ tin cậy (60 ảnh mỗi lớp, chỉ xét có hộp): conf 0,10 ch
 5. **EAR khi cúi đã được xử lý trong pipeline**: EAR trung vị của `mobile_usage` chỉ 0,156 (forward 0,261) vì mí mắt khép khi cúi, nhưng `pipeline.py` đã bỏ qua EAR khi đã hiệu chuẩn và pitch tương đối > ngưỡng (`suppress_eyes`), nên không báo buồn ngủ nhầm ở chế độ chạy bình thường. Chưa kiểm trước khi hiệu chuẩn xong (4 s đầu).
 6. Đã làm cho `conf` YOLO đổi được bằng biến môi trường `DRIVERGUARD_YOLO_CONF` (mặc định vẫn 0,25). Gợi ý thử 0,10 (recall 69% → 83%, báo giả 0% trên 120 ảnh âm). Phải kiểm trên video, vì luật `phone_s` 1,5 s đã lọc báo giả theo thời gian.
 Hạn chế: ảnh tĩnh, ban đêm, một camera, nhãn theo lớp; 100 ảnh mỗi lớp cho phần điện thoại; ngưỡng yaw/pitch dùng trung vị `forward` làm chuẩn.
+
+## 22. Thí nghiệm 15 (EXP-015): báo giả trên 40 phút video có nhãn nháy mắt từng khung (eyeblink8)
+
+Ghi ngày 2026-10-13 (Claude, container, CPU). Mã: `scripts/eval_eyeblink8.py`; số liệu: `docs/experiments/eyeblink8.json`.
+Dữ liệu: `eyeblink8` (Fogelton & Benesova, https://www.blinkingmatters.com/research), 8 video 640×480 30 FPS,
+4 người, **39,6 phút, 404 lần nháy mắt có nhãn từng khung**. Chạy **pipeline thật** (`FaceLandmarkTracker` + `DriverPipeline`)
+theo trục thời gian của video, ngưỡng y như cấu hình đang dùng (EAR 0,15; `eyes_closed_s` 1,8).
+
+Đây là thí nghiệm đầu tiên của dự án có **chiều thời gian trên video dài**, nên lần đầu đo được "báo giả mỗi phút"
+— số liệu mà `docs/MVP_REPORT.md` mục 5 ghi là chưa có.
+
+### 22.1 Kết quả
+| Chỉ số | Giá trị |
+|---|---|
+| Thấy mặt | 99,8% |
+| Bắt được lần nháy mắt (EAR có tụt dưới ngưỡng trong đoạn nháy) | **93,1%** (376/404) |
+| Mức khung: recall nhãn "nhắm hẳn" | 95,9% |
+| Mức khung: FPR | 1,94% |
+| **Báo giả `DROWSINESS_ACUTE`** | **1 lần trong 39,6 phút = 0,025 lần/phút** (≈ 1,5 lần/giờ) |
+| Tốc độ xử lý (CPU container, 1 luồng) | **10,9 ms/khung ≈ 92 FPS** |
+
+Không có sự kiện `LOOKING_AWAY`, `LOOKING_DOWN`, `DRIVER_ABSENCE` hay `CHRONIC_FATIGUE` nào.
+
+### 22.2 Điều tra lần báo giả duy nhất
+Video 8, giây 113,1. Đã trích ảnh để xem: **người thử cười to, mắt híp lại gần 3 giây** (86 khung EAR < 0,15, thấp nhất ~0,09),
+mặt vẫn bám tốt, và nhãn không đánh dấu nháy mắt ở đoạn đó (eyeblink8 chỉ đánh nhãn *nháy mắt*, không đánh nhãn *mắt híp*).
+
+**Kết luận: cười to là một kiểu báo giả có thật của phương pháp EAR.** Cười làm hẹp khe mắt giống hệt nhắm mắt,
+mà `suppress_eyes` hiện chỉ bỏ qua EAR khi cúi đầu hoặc khi MAR vượt ngưỡng ngáp; cười mím môi thì MAR vẫn thấp nên không được bỏ qua.
+Đề xuất (CHƯA làm, cần dữ liệu kiểm chứng): thêm chỉ số "độ rộng miệng / chiều cao miệng" hoặc blendshape `mouthSmile`
+của MediaPipe để bỏ qua EAR khi đang cười. Không nên sửa vội vì mới thấy 1 ca.
+
+### 22.3 Hệ quả cho mục tiêu FPS (UR-15 ≥ 20 FPS)
+MediaPipe face + toàn bộ pipeline chạy **10,9 ms/khung trên CPU container**, tức ~92 FPS, ổn định trên cả 8 video.
+Vậy **nút thắt khiến FPS camera trung vị chỉ 15 không nằm ở MediaPipe**. Nghi can còn lại: khâu đọc camera (`cv2.VideoCapture`),
+YOLO điện thoại (thí nghiệm 1 đo yolo26x 55,6 ms/khung) và YOLO pose chạy chung GPU. Cần đo lại trên máy có camera để chốt.
+
+### 22.4 Hạn chế
+Người thử ngồi trước webcam trong nhà, không phải trong xe; đây là video người **tỉnh táo** nên chỉ đo được báo giả,
+không đo được khả năng bắt buồn ngủ thật (phần đó xem thí nghiệm 16). Nhãn là *nháy mắt*, nên mọi đoạn mắt híp kéo dài
+đều không có nhãn và bị tính là báo giả, tức con số 0,025 lần/phút là **ước lượng thận trọng** (có thể tốt hơn thực tế).
