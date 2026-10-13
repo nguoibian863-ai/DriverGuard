@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -46,9 +47,9 @@ def read_tags(path: Path) -> dict[int, dict]:
     return tags
 
 
-def blink_spans(tags: dict[int, dict]) -> list[tuple[int, int]]:
-    """Các đoạn khung liên tiếp được đánh dấu thuộc một lần nháy mắt."""
-    frames = sorted(f for f, t in tags.items() if t["blink"])
+def spans_of(tags: dict[int, dict], key: str) -> list[tuple[int, int]]:
+    """Các đoạn khung liên tiếp cùng được đánh dấu theo `key` ('blink' hoặc 'closed')."""
+    frames = sorted(f for f, t in tags.items() if t[key])
     spans: list[tuple[int, int]] = []
     for frame in frames:
         if spans and frame == spans[-1][1] + 1:
@@ -56,6 +57,25 @@ def blink_spans(tags: dict[int, dict]) -> list[tuple[int, int]]:
         else:
             spans.append((frame, frame))
     return spans
+
+
+def closure_latencies(by_frame: dict[int, dict], tags: dict[int, dict], fps: float, ear_threshold: float) -> list[float]:
+    """Độ trễ cảm nhận: từ khung ĐẦU TIÊN được đánh nhãn 'nhắm hẳn' đến khung EAR tụt dưới ngưỡng.
+
+    Âm nghĩa là EAR đã tụt TRƯỚC khi nhãn bắt đầu (mắt khép dần trước khi nhắm hẳn), tức không trễ.
+    Chỉ tính các đoạn tìm được điểm cắt trong cửa sổ [-0,5 s, +1,0 s] quanh mốc nhãn.
+    """
+    latencies: list[float] = []
+    for start, _ in spans_of(tags, "closed"):
+        lo, hi = start - int(0.5 * fps), start + int(1.0 * fps)
+        crossing = next(
+            (f for f in range(lo, hi + 1)
+             if f in by_frame and by_frame[f]["ear"] is not None and by_frame[f]["ear"] < ear_threshold),
+            None,
+        )
+        if crossing is not None:
+            latencies.append((crossing - start) / fps)
+    return latencies
 
 
 def run_video(video: Path, tags: dict[int, dict], stride: int) -> dict:
@@ -98,7 +118,7 @@ def run_video(video: Path, tags: dict[int, dict], stride: int) -> dict:
     processed = len(rows)
     duration_min = (index + 1) / fps / 60.0
     truth_closed = {f for f, t in tags.items() if t["closed"]}
-    spans = blink_spans(tags)
+    spans = spans_of(tags, "blink")
 
     # Ở mức khung: EAR dưới ngưỡng so với nhãn "nhắm hẳn"
     seen = [r for r in rows if r["ear"] is not None]
@@ -114,6 +134,7 @@ def run_video(video: Path, tags: dict[int, dict], stride: int) -> dict:
         if any(by_frame[f]["ear"] < thresholds.ear_threshold for f in range(start, end + 1) if f in by_frame)
     )
 
+    latencies = closure_latencies(by_frame, tags, fps, thresholds.ear_threshold)
     drowsy = [e for e in events if e["event_type"] == "DROWSINESS_ACUTE"]
     return {
         "video": f"{video.parent.name}/{video.name}",
@@ -129,9 +150,27 @@ def run_video(video: Path, tags: dict[int, dict], stride: int) -> dict:
         "frame_level": {"tp": tp, "fp": fp, "fn": fn, "tn": tn,
                         "recall": round(tp / (tp + fn), 3) if tp + fn else None,
                         "fpr": round(fp / (fp + tn), 4) if fp + tn else None},
+        "closure_latency_s": {
+            "n": len(latencies),
+            "median": round(float(np.median(latencies)), 3) if latencies else None,
+            "p90": round(float(np.percentile(latencies, 90)), 3) if latencies else None,
+        },
         "events": {e: sum(1 for x in events if x["event_type"] == e) for e in sorted({x["event_type"] for x in events})},
         "false_drowsiness_per_min": round(len(drowsy) / duration_min, 3) if duration_min else None,
         "ms_per_frame": round(elapsed / max(processed, 1) * 1000, 1),
+    }
+
+
+def _latency_summary(results: list[dict]) -> dict:
+    """Gộp độ trễ theo trung vị có trọng số số đoạn của từng video."""
+    rows = [r for r in results if r["closure_latency_s"]["median"] is not None]
+    total = sum(r["closure_latency_s"]["n"] for r in rows)
+    if not total:
+        return {"n": 0, "median_of_videos": None}
+    return {
+        "n": total,
+        "median_of_videos": round(float(np.median([r["closure_latency_s"]["median"] for r in rows])), 3),
+        "p90_of_videos": round(float(np.median([r["closure_latency_s"]["p90"] for r in rows])), 3),
     }
 
 
@@ -171,6 +210,7 @@ def main() -> None:
         "frame_level": {**frame,
                         "recall": round(frame["tp"] / max(frame["tp"] + frame["fn"], 1), 3),
                         "fpr": round(frame["fp"] / max(frame["fp"] + frame["tn"], 1), 4)},
+        "closure_latency_s": _latency_summary(results),
         "false_DROWSINESS_ACUTE": total_drowsy,
         "false_DROWSINESS_ACUTE_per_min": round(total_drowsy / total_min, 4) if total_min else None,
         "events_total": {k: sum(r["events"].get(k, 0) for r in results) for k in sorted({k for r in results for k in r["events"]})},
