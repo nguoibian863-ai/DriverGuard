@@ -50,6 +50,7 @@ def run_video(video: Path, stride: int) -> dict:
     ears: list[float] = []
     mars: list[float] = []
     closed_flags: list[bool] = []
+    yawn_flags: list[bool] = []
     events: list[dict] = []
     faces = processed = index = 0
     elapsed = 0.0
@@ -73,6 +74,7 @@ def run_video(video: Path, stride: int) -> dict:
                 ears.append(observation.ear)
                 mars.append(observation.mar)
             closed_flags.append(bool(telemetry["eyes_closed"]))
+            yawn_flags.append(bool(telemetry["yawning"]))
     finally:
         capture.release()
         tracker.close()
@@ -92,6 +94,9 @@ def run_video(video: Path, stride: int) -> dict:
         "mar_p95": round(float(np.percentile(mars, 95)), 3) if mars else None,
         # PERCLOS: tỉ lệ khung bị coi là nhắm mắt (sau khi pipeline đã bỏ qua lúc cúi/ngáp)
         "perclos": round(sum(closed_flags) / max(processed, 1), 4),
+        # YAWNING không phải loại sự kiện riêng theo docs/design/07 (nó nuôi CHRONIC_FATIGUE),
+        # nên đo bằng tỉ lệ khung mà cờ ngáp đang bật.
+        "yawn_frac": round(sum(yawn_flags) / max(processed, 1), 4),
         "events": counts,
         "events_per_min": {k: round(v / minutes, 3) for k, v in counts.items()} if minutes else {},
         "ms_per_frame": round(elapsed / max(processed, 1) * 1000, 1),
@@ -126,7 +131,7 @@ def main() -> None:
             "ear_median": round(float(np.median([r["ear_median"] for r in rows if r["ear_median"]])), 3) if rows else None,
             "DROWSINESS_ACUTE": drowsy,
             "DROWSINESS_ACUTE_per_min": round(drowsy / minutes, 3) if minutes else None,
-            "YAWNING": sum(r["events"].get("YAWNING", 0) for r in rows),
+            "yawn_frac": round(sum(r["yawn_frac"] * r["frames_processed"] for r in rows) / max(frames, 1), 4),
             "CHRONIC_FATIGUE": sum(r["events"].get("CHRONIC_FATIGUE", 0) for r in rows),
         }
 
