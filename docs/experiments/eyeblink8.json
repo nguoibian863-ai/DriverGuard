@@ -1,0 +1,260 @@
+{
+ "dataset": "eyeblink8 (blinkingmatters.com, Fogelton & Benesova)",
+ "stride": 1,
+ "thresholds": {
+  "ear": 0.15,
+  "eyes_closed_s": 1.8
+ },
+ "videos": 8,
+ "total_minutes": 39.6,
+ "blinks_annotated": 404,
+ "blink_recall": 0.931,
+ "face_rate": 0.998,
+ "frame_level": {
+  "tp": 1725,
+  "fp": 1346,
+  "fn": 74,
+  "tn": 68043,
+  "recall": 0.959,
+  "fpr": 0.0194
+ },
+ "closure_latency_s": {
+  "n": 376,
+  "median_of_videos": 0.0,
+  "p90_of_videos": 0.017
+ },
+ "false_DROWSINESS_ACUTE": 1,
+ "false_DROWSINESS_ACUTE_per_min": 0.0252,
+ "events_total": {
+  "DROWSINESS_ACUTE": 1
+ },
+ "ms_per_frame_cpu": 10.2,
+ "per_video": [
+  {
+   "video": "1/26122013_223310_cam.avi",
+   "frames_total": 15784,
+   "frames_processed": 15784,
+   "duration_min": 8.77,
+   "fps_video": 30.0,
+   "face_rate": 1.0,
+   "calibrated_rate": 0.992,
+   "blinks_annotated": 35,
+   "blinks_with_ear_dip": 31,
+   "blink_recall": 0.886,
+   "frame_level": {
+    "tp": 114,
+    "fp": 155,
+    "fn": 25,
+    "tn": 15490,
+    "recall": 0.82,
+    "fpr": 0.0099
+   },
+   "closure_latency_s": {
+    "n": 32,
+    "median": 0.0,
+    "p90": 0.033
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.5
+  },
+  {
+   "video": "2/26122013_224532_cam.avi",
+   "frames_total": 11182,
+   "frames_processed": 11182,
+   "duration_min": 6.21,
+   "fps_video": 30.0,
+   "face_rate": 0.995,
+   "calibrated_rate": 0.984,
+   "blinks_annotated": 87,
+   "blinks_with_ear_dip": 87,
+   "blink_recall": 1.0,
+   "frame_level": {
+    "tp": 625,
+    "fp": 99,
+    "fn": 11,
+    "tn": 10388,
+    "recall": 0.983,
+    "fpr": 0.0094
+   },
+   "closure_latency_s": {
+    "n": 87,
+    "median": 0.0,
+    "p90": 0.033
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.2
+  },
+  {
+   "video": "3/26122013_230103_cam.avi",
+   "frames_total": 9216,
+   "frames_processed": 9216,
+   "duration_min": 5.12,
+   "fps_video": 30.0,
+   "face_rate": 1.0,
+   "calibrated_rate": 0.987,
+   "blinks_annotated": 65,
+   "blinks_with_ear_dip": 49,
+   "blink_recall": 0.754,
+   "frame_level": {
+    "tp": 152,
+    "fp": 118,
+    "fn": 20,
+    "tn": 8925,
+    "recall": 0.884,
+    "fpr": 0.013
+   },
+   "closure_latency_s": {
+    "n": 49,
+    "median": 0.0,
+    "p90": 0.033
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.0
+  },
+  {
+   "video": "4/26122013_230654_cam.avi",
+   "frames_total": 5405,
+   "frames_processed": 5405,
+   "duration_min": 3.0,
+   "fps_video": 30.0,
+   "face_rate": 0.992,
+   "calibrated_rate": 0.97,
+   "blinks_annotated": 31,
+   "blinks_with_ear_dip": 26,
+   "blink_recall": 0.839,
+   "frame_level": {
+    "tp": 112,
+    "fp": 40,
+    "fn": 6,
+    "tn": 5202,
+    "recall": 0.949,
+    "fpr": 0.0076
+   },
+   "closure_latency_s": {
+    "n": 26,
+    "median": 0.0,
+    "p90": 0.0
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.1
+  },
+  {
+   "video": "8/27122013_151644_cam.avi",
+   "frames_total": 10663,
+   "frames_processed": 10663,
+   "duration_min": 5.92,
+   "fps_video": 30.0,
+   "face_rate": 1.0,
+   "calibrated_rate": 0.989,
+   "blinks_annotated": 30,
+   "blinks_with_ear_dip": 30,
+   "blink_recall": 1.0,
+   "frame_level": {
+    "tp": 106,
+    "fp": 262,
+    "fn": 1,
+    "tn": 10294,
+    "recall": 0.991,
+    "fpr": 0.0248
+   },
+   "closure_latency_s": {
+    "n": 30,
+    "median": 0.0,
+    "p90": 0.0
+   },
+   "events": {
+    "DROWSINESS_ACUTE": 1
+   },
+   "false_drowsiness_per_min": 0.169,
+   "ms_per_frame": 10.0
+  },
+  {
+   "video": "9/27122013_152435_cam.avi",
+   "frames_total": 5134,
+   "frames_processed": 5134,
+   "duration_min": 2.85,
+   "fps_video": 30.0,
+   "face_rate": 0.997,
+   "calibrated_rate": 0.977,
+   "blinks_annotated": 41,
+   "blinks_with_ear_dip": 41,
+   "blink_recall": 1.0,
+   "frame_level": {
+    "tp": 242,
+    "fp": 71,
+    "fn": 8,
+    "tn": 4798,
+    "recall": 0.968,
+    "fpr": 0.0146
+   },
+   "closure_latency_s": {
+    "n": 41,
+    "median": 0.0,
+    "p90": 0.033
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.2
+  },
+  {
+   "video": "10/27122013_153916_cam.avi",
+   "frames_total": 9077,
+   "frames_processed": 9077,
+   "duration_min": 5.04,
+   "fps_video": 30.0,
+   "face_rate": 0.995,
+   "calibrated_rate": 0.987,
+   "blinks_annotated": 72,
+   "blinks_with_ear_dip": 71,
+   "blink_recall": 0.986,
+   "frame_level": {
+    "tp": 230,
+    "fp": 279,
+    "fn": 3,
+    "tn": 8517,
+    "recall": 0.987,
+    "fpr": 0.0317
+   },
+   "closure_latency_s": {
+    "n": 70,
+    "median": 0.0,
+    "p90": 0.0
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.1
+  },
+  {
+   "video": "11/27122013_154548_cam.avi",
+   "frames_total": 4895,
+   "frames_processed": 4895,
+   "duration_min": 2.72,
+   "fps_video": 30.0,
+   "face_rate": 1.0,
+   "calibrated_rate": 0.975,
+   "blinks_annotated": 43,
+   "blinks_with_ear_dip": 41,
+   "blink_recall": 0.953,
+   "frame_level": {
+    "tp": 144,
+    "fp": 322,
+    "fn": 0,
+    "tn": 4429,
+    "recall": 1.0,
+    "fpr": 0.0678
+   },
+   "closure_latency_s": {
+    "n": 41,
+    "median": -0.033,
+    "p90": 0.0
+   },
+   "events": {},
+   "false_drowsiness_per_min": 0.0,
+   "ms_per_frame": 10.2
+  }
+ ]
+}

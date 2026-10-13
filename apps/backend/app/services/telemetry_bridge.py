@@ -2,17 +2,20 @@ import asyncio
 import queue
 import threading
 import time
+from uuid import uuid4
 
 from app.db.database import insert_event
+from app.services.snapshot_store import SnapshotStore, snapshots_enabled
 
 
 class TelemetryBridge:
-    def __init__(self, telemetry_q, frame_q, manager, loop, session_id=None):
+    def __init__(self, telemetry_q, frame_q, manager, loop, session_id=None, snapshots=None):
         self.telemetry_q = telemetry_q
         self.frame_q = frame_q
         self.manager = manager
         self.loop = loop
         self.session_id = session_id
+        self.snapshots = snapshots if snapshots is not None else (SnapshotStore() if snapshots_enabled() else None)
         self.telemetry = None
         self.frame = None
         self.last_telemetry_at = None
@@ -50,8 +53,19 @@ class TelemetryBridge:
             self.telemetry = telemetry
             self.last_telemetry_at = time.monotonic()
         for event in telemetry.get("events", []):
-            insert_event(event, self.session_id)
+            insert_event(self._with_snapshot(event), self.session_id)
         asyncio.run_coroutine_threadsafe(self.manager.broadcast(telemetry), self.loop)
+
+    def _with_snapshot(self, event):
+        """Gắn ảnh khung hình gần nhất vào sự kiện; lỗi lưu ảnh không được chặn việc ghi sự kiện."""
+        if self.snapshots is None:
+            return event
+        event = dict(event)
+        event.setdefault("id", str(uuid4()))
+        path = self.snapshots.save(event["id"], self.latest_frame(), event.get("started_at"))
+        if path:
+            event["snapshot_path"] = path
+        return event
 
     def latest_frame(self):
         with self._lock:

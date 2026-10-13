@@ -10,6 +10,11 @@ export async function getEvents(limit = 50): Promise<DriverEvent[]> {
   return data.events as DriverEvent[];
 }
 
+/** Ảnh chụp lúc xảy ra sự kiện; backend trả 404 nếu ảnh đã bị dọn theo FIFO. */
+export function eventSnapshotUrl(eventId: string): string {
+  return `${API_URL}/api/v1/events/${encodeURIComponent(eventId)}/snapshot`;
+}
+
 export async function postCalibrate(): Promise<void> {
   await fetch(`${API_URL}/api/v1/sessions/calibrate`, { method: "POST" });
 }

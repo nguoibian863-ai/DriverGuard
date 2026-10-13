@@ -1,7 +1,8 @@
 export type RiskLevel = "NORMAL" | "WARNING" | "DANGER";
 
 export interface DriverEvent {
-  id?: number;
+  // Backend sinh id bằng uuid4 (chuỗi), không phải số
+  id?: string;
   event_type: string;
   started_at: string;
   duration_ms: number;
@@ -9,6 +10,7 @@ export interface DriverEvent {
   risk_level: string;
   confidence: number;
   reason: string;
+  snapshot_path?: string | null;
 }
 
 export interface Telemetry {

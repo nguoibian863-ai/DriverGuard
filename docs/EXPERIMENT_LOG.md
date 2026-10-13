@@ -583,3 +583,110 @@ Quét độ tin cậy (60 ảnh mỗi lớp, chỉ xét có hộp): conf 0,10 ch
 5. **EAR khi cúi đã được xử lý trong pipeline**: EAR trung vị của `mobile_usage` chỉ 0,156 (forward 0,261) vì mí mắt khép khi cúi, nhưng `pipeline.py` đã bỏ qua EAR khi đã hiệu chuẩn và pitch tương đối > ngưỡng (`suppress_eyes`), nên không báo buồn ngủ nhầm ở chế độ chạy bình thường. Chưa kiểm trước khi hiệu chuẩn xong (4 s đầu).
 6. Đã làm cho `conf` YOLO đổi được bằng biến môi trường `DRIVERGUARD_YOLO_CONF` (mặc định vẫn 0,25). Gợi ý thử 0,10 (recall 69% → 83%, báo giả 0% trên 120 ảnh âm). Phải kiểm trên video, vì luật `phone_s` 1,5 s đã lọc báo giả theo thời gian.
 Hạn chế: ảnh tĩnh, ban đêm, một camera, nhãn theo lớp; 100 ảnh mỗi lớp cho phần điện thoại; ngưỡng yaw/pitch dùng trung vị `forward` làm chuẩn.
+
+## 22. Thí nghiệm 15 (EXP-015): báo giả trên 40 phút video có nhãn nháy mắt từng khung (eyeblink8)
+
+Ghi ngày 2026-10-13 (Claude, container, CPU). Mã: `scripts/eval_eyeblink8.py`; số liệu: `docs/experiments/eyeblink8.json`.
+Dữ liệu: `eyeblink8` (Fogelton & Benesova, https://www.blinkingmatters.com/research), 8 video 640×480 30 FPS,
+4 người, **39,6 phút, 404 lần nháy mắt có nhãn từng khung**. Chạy **pipeline thật** (`FaceLandmarkTracker` + `DriverPipeline`)
+theo trục thời gian của video, ngưỡng y như cấu hình đang dùng (EAR 0,15; `eyes_closed_s` 1,8).
+
+Đây là thí nghiệm đầu tiên của dự án có **chiều thời gian trên video dài**, nên lần đầu đo được "báo giả mỗi phút"
+— số liệu mà `docs/MVP_REPORT.md` mục 5 ghi là chưa có.
+
+### 22.1 Kết quả
+| Chỉ số | Giá trị |
+|---|---|
+| Thấy mặt | 99,8% |
+| Bắt được lần nháy mắt (EAR có tụt dưới ngưỡng trong đoạn nháy) | **93,1%** (376/404) |
+| Mức khung: recall nhãn "nhắm hẳn" | 95,9% |
+| Mức khung: FPR | 1,94% |
+| **Báo giả `DROWSINESS_ACUTE`** | **1 lần trong 39,6 phút = 0,025 lần/phút** (≈ 1,5 lần/giờ) |
+| Tốc độ xử lý (CPU container, 1 luồng) | **10,9 ms/khung ≈ 92 FPS** |
+
+Không có sự kiện `LOOKING_AWAY`, `LOOKING_DOWN`, `DRIVER_ABSENCE` hay `CHRONIC_FATIGUE` nào.
+
+### 22.2 Điều tra lần báo giả duy nhất
+Video 8, giây 113,1. Đã trích ảnh để xem: **người thử cười to, mắt híp lại gần 3 giây** (86 khung EAR < 0,15, thấp nhất ~0,09),
+mặt vẫn bám tốt, và nhãn không đánh dấu nháy mắt ở đoạn đó (eyeblink8 chỉ đánh nhãn *nháy mắt*, không đánh nhãn *mắt híp*).
+
+**Kết luận: cười to là một kiểu báo giả có thật của phương pháp EAR.** Cười làm hẹp khe mắt giống hệt nhắm mắt,
+mà `suppress_eyes` hiện chỉ bỏ qua EAR khi cúi đầu hoặc khi MAR vượt ngưỡng ngáp; cười mím môi thì MAR vẫn thấp nên không được bỏ qua.
+Đề xuất (CHƯA làm, cần dữ liệu kiểm chứng): thêm chỉ số "độ rộng miệng / chiều cao miệng" hoặc blendshape `mouthSmile`
+của MediaPipe để bỏ qua EAR khi đang cười. Không nên sửa vội vì mới thấy 1 ca.
+
+### 22.3 Hệ quả cho mục tiêu FPS (UR-15 ≥ 20 FPS)
+MediaPipe face + toàn bộ pipeline chạy **10,9 ms/khung trên CPU container**, tức ~92 FPS, ổn định trên cả 8 video.
+Vậy **nút thắt khiến FPS camera trung vị chỉ 15 không nằm ở MediaPipe**. Nghi can còn lại: khâu đọc camera (`cv2.VideoCapture`),
+YOLO điện thoại (thí nghiệm 1 đo yolo26x 55,6 ms/khung) và YOLO pose chạy chung GPU. Cần đo lại trên máy có camera để chốt.
+
+### 22.5 Độ trễ phát hiện (bổ sung 2026-10-13)
+Nhãn "nhắm hẳn" của eyeblink8 có theo từng khung, nên đo được **độ trễ của khâu cảm nhận**:
+từ khung đầu tiên có nhãn nhắm hẳn đến khung EAR tụt dưới ngưỡng (tìm trong cửa sổ [-0,5 s, +1,0 s]).
+
+| Chỉ số | Giá trị (376 lần nhắm mắt, 8 video) |
+|---|---|
+| Trung vị | **0,000 s** (cùng khung với nhãn) |
+| p90 | **0,017 s** (dưới một khung ở 30 FPS) |
+| p90 xấu nhất theo video | 0,033 s (đúng 1 khung) |
+
+Ngân sách độ trễ từ lúc mắt nhắm đến lúc cảnh báo hiện ra:
+
+| Thành phần | Thời gian | Nguồn |
+|---|---|---|
+| Cảm nhận (EAR tụt) | ~0 s (p90 0,017 s) | đo được ở đây |
+| Giữ trạng thái `eyes_closed_s` | **1,8 s** | tham số thiết kế trong `thresholds.yaml` |
+| Đẩy telemetry | ≤ 0,067 s | `MAX_TELEMETRY_HZ = 15` ở `worker.py:17` (sự kiện được đẩy ngay, không chờ) |
+| **Tổng** | **≈ 1,8 s** | |
+
+**Kết luận: độ trễ gần như hoàn toàn do tham số `eyes_closed_s` 1,8 s quyết định, không phải do xử lý chậm.**
+Muốn cảnh báo sớm hơn thì hạ tham số đó, đổi lại sẽ tăng báo giả — cần dữ liệu để cân nhắc, chưa đổi.
+Lưu ý: đây là độ trễ với **mắt nhắm**; độ trễ với *buồn ngủ thật* (người gà gật dần) thì hai tập này
+không đo được vì không có nhãn theo mốc thời gian của trạng thái buồn ngủ.
+
+### 22.4 Hạn chế
+Người thử ngồi trước webcam trong nhà, không phải trong xe; đây là video người **tỉnh táo** nên chỉ đo được báo giả,
+không đo được khả năng bắt buồn ngủ thật (phần đó xem thí nghiệm 16). Nhãn là *nháy mắt*, nên mọi đoạn mắt híp kéo dài
+đều không có nhãn và bị tính là báo giả, tức con số 0,025 lần/phút là **ước lượng thận trọng** (có thể tốt hơn thực tế).
+
+## 23. Thí nghiệm 16 (EXP-016): phân biệt TỈNH TÁO và MỆT MỎI trên video người thật (DF-vediodataset)
+
+Ghi ngày 2026-10-13 (Claude, container, CPU). Mã: `scripts/eval_df_video.py`; số liệu: `docs/experiments/df_video.json`.
+Dữ liệu: `DF-vediodataset` part1–4 (figshare 33100853/33102506/33103226/33107144, **CC BY 4.0**), video mô phỏng lái tàu
+của 15 tình nguyện viên, tên tệp gắn nhãn 清醒 (tỉnh táo) hoặc 疲劳 (mệt mỏi). Đã tải **3 người có cả hai trạng thái**
+(8 tệp, ~250 MB): tỉnh táo 10,2 phút, mệt mỏi 21,9 phút, 30 FPS, xử lý mỗi 2 khung (tương đương 15 FPS).
+Chạy pipeline thật với ngưỡng đang dùng, không chỉnh gì.
+
+Thí nghiệm 15 đo **báo giả trên người tỉnh táo**; thí nghiệm này đo **khả năng phân biệt** khi có người mệt thật.
+
+### 23.1 Kết quả
+| Chỉ số | Tỉnh táo (4 video, 10,2 phút) | Mệt mỏi (4 video, 21,9 phút) |
+|---|---|---|
+| Thấy mặt | 100% | 98–100% |
+| EAR trung vị | 0,264 | 0,123 |
+| PERCLOS | **0,000** | 0,203 |
+| Tỉ lệ khung có cờ ngáp | **0,0000** | 0,0096 |
+| `DROWSINESS_ACUTE` | **0** (0,00/phút) | 76 (3,48/phút) |
+| `CHRONIC_FATIGUE` | **0** | 22 |
+
+**Phân tách hoàn toàn ở mức video: 4/4 video mệt mỏi đều báo, 4/4 video tỉnh táo không báo lần nào.**
+PERCLOS bằng đúng 0,000 ở cả bốn video tỉnh táo, trong khi video mệt mỏi từ 0,028 đến 0,832.
+Ngáp cũng theo hướng đó: 0 ở mọi video tỉnh táo, xuất hiện ở 3/4 video mệt mỏi (cao nhất 3,0% số khung).
+
+### 23.2 Nhận xét
+1. **Hai thí nghiệm bổ sung nhau.** Gộp lại: 50 phút video người tỉnh táo (10,2 phút ở đây + 39,6 phút eyeblink8)
+   chỉ sinh **1** báo giả `DROWSINESS_ACUTE`, tức **0,02 lần/phút**; còn mọi video người mệt đều được bắt.
+2. **Cooldown gộp sự kiện dài.** Video `子龙疲劳2` có PERCLOS 0,832 (người gần như ngủ hẳn, EAR trung vị 0,016)
+   nhưng chỉ sinh 7 sự kiện, ít hơn video mệt nhẹ hơn (`子龙疲劳1`, PERCLOS 0,078, 29 sự kiện). Nhắm mắt liên tục
+   bị gộp thành một sự kiện dài nên **đếm số sự kiện không phải thước đo mức độ nặng**; PERCLOS mới là thước đo đúng.
+   Đây là hành vi đúng thiết kế, nhưng cần nhớ khi đọc bảng sự kiện ở `/monitor`.
+3. `YAWNING` không phải loại sự kiện riêng theo `docs/design/07_API_AND_DATA_MODEL.md` (nó nuôi `CHRONIC_FATIGUE`
+   và cờ telemetry), nên đếm sự kiện luôn ra 0 — phải đọc cột "tỉ lệ khung có cờ ngáp".
+4. Tốc độ xử lý 11,4–12,7 ms/khung, khớp với 10,9 ms đo ở thí nghiệm 15.
+
+### 23.3 Hạn chế
+- Nhãn gắn cho **cả video**, không theo từng thời điểm, nên **không tính được độ trễ phát hiện** từ tập này.
+- Bối cảnh là phòng mô phỏng lái tàu, không phải cabin ô tô; ánh sáng tốt, mặt chính diện, không có kính râm hay hồng ngoại.
+- Chỉ 3 người và 10,2 phút ở nhóm tỉnh táo; hai video `子龙清醒` chỉ dài 0,2 phút mỗi video.
+- Ghép cặp cùng người dựa theo tên tệp; riêng cặp `胡琴林` đã xem ảnh xác nhận đúng một người, cùng phòng.
+- Video mệt mỏi có đoạn nhắm mắt rất dài nên bài toán dễ hơn thực tế lái xe.
