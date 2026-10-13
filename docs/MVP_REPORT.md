@@ -108,7 +108,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 | Rủi ro | Mức | Ghi chú |
 |---|---|---|
-| Báo giả/bỏ sót ngoài đời thật | **Trung bình** | Đã đo trên 50 phút video người thật (thí nghiệm 15–16): **0,02 báo giả/phút**, phân tách hoàn toàn tỉnh táo vs mệt mỏi ở mức video. Chưa đo **độ trễ phát hiện** (nhãn theo cả video) và chưa đo trong cabin ô tô. |
+| Báo giả/bỏ sót ngoài đời thật | **Trung bình** | Đã đo trên 50 phút video người thật (thí nghiệm 15–16): **0,02 báo giả/phút**, phân tách hoàn toàn tỉnh táo vs mệt mỏi, độ trễ cảm nhận trung vị 0 ms. Chưa đo trong cabin ô tô và chưa đo độ trễ với **buồn ngủ thật** (gà gật dần), vì không tập nào có nhãn theo mốc thời gian của trạng thái đó. |
 | Kính râm, thiếu sáng, đội mũ | Cao | MediaPipe mất mặt → `DRIVER_ABSENCE`. Chưa có chế độ hồng ngoại. |
 | Repo GitHub đang **public** | Trung bình | Sếp cần quyết định đổi sang private hay không. |
 | Đường dẫn dự án có dấu tiếng Việt | Thấp | Đã né cho MediaPipe; thư viện khác có thể gặp lỗi tương tự. |
@@ -129,7 +129,7 @@ Phát hiện lỗi thiết kế: lọc vùng điện thoại phụ thuộc vào 
 
 1. Sếp thử với người thật (mục 6), tôi chỉnh ngưỡng theo kết quả. **Còn lại.**
 2. ~~Thêm âm thanh cảnh báo và lưu snapshot sự kiện~~ đã xong.
-3. ~~Chạy đánh giá trên dataset công khai, gồm cả video để có báo giả/phút~~ đã xong (thí nghiệm 1–16). Còn thiếu: **độ trễ phát hiện** (cần video có nhãn theo mốc thời gian) và dữ liệu trong cabin ô tô.
+3. ~~Chạy đánh giá trên dataset công khai, gồm báo giả/phút và độ trễ~~ đã xong (thí nghiệm 1–16). Còn thiếu: dữ liệu trong cabin ô tô, và độ trễ với buồn ngủ thật (gà gật dần).
 4. ~~Đóng gói Docker Compose~~ đã viết (chưa build thử); ONNX Runtime **còn lại**.
 
 ## 8. Trạng thái hoàn thiện (cập nhật 2026-10-13)
@@ -146,6 +146,8 @@ Kiểm thử: `pytest ai` 57, backend 15, e2e 7, web 17 đều đạt.
 | Phân biệt tỉnh táo vs mệt mỏi | **4/4 video mệt đều báo, 4/4 video tỉnh táo không báo** | DF-vediodataset |
 | PERCLOS | 0,000 khi tỉnh táo · 0,203 khi mệt mỏi | DF-vediodataset |
 | Bắt được lần nháy mắt | 93,1% trên 404 lần có nhãn | eyeblink8 |
+| **Độ trễ cảm nhận** | **trung vị 0 ms, p90 17 ms** (376 lần nhắm mắt) | eyeblink8 |
+| Độ trễ tổng đến lúc cảnh báo | **≈1,8 s**, gần như toàn bộ do tham số `eyes_closed_s` | tính từ ngân sách |
 | Thấy mặt | 99,8% | eyeblink8 |
 | Tốc độ pipeline | **10,9 ms/khung (~92 FPS) trên CPU** | eyeblink8 |
 
@@ -164,11 +166,11 @@ Tắt bằng `DRIVERGUARD_SNAPSHOTS=0`, đổi thư mục bằng `DRIVERGUARD_SN
 | Kiểm chứng worker + pose fallback trên camera thật | Máy có camera | Khởi động lại backend, `python scripts/live_session.py --out docs/experiments/live_session_4.json --label EXP-014`, rồi `python scripts/score_live_session.py` |
 | Hạ `pose_yaw_ratio` 0,35 về 0,20–0,25 | Kết quả phiên trên | Chỉ đổi nếu phiên cabin cho thấy bỏ sót quay đầu mà không tăng báo giả |
 | Xác nhận ROI điện thoại trên camera của sếp | Camera thật | Trên FORM (thí nghiệm 14) ROI ổn (68/69 ca có hộp) nhưng YOLO chỉ thấy 69% ca áp tai, 0% ca nhắn tin nhìn xuống; chạy pha điện thoại trong `live_session.py` để xác nhận trên camera laptop; thử `DRIVERGUARD_YOLO_CONF=0.10` (mặc định 0,25) trên video |
-| Độ trễ phát hiện trên video | Video có nhãn theo mốc thời gian (NTHU-DDD/YawDD cần đăng ký) | DF và eyeblink8 chỉ có nhãn theo cả video hoặc theo lần nháy, nên chưa tính được độ trễ |
+| Độ trễ với buồn ngủ thật (gà gật dần) | Video có nhãn theo mốc thời gian (NTHU-DDD/YawDD cần đăng ký) | Độ trễ với *mắt nhắm* đã đo (trung vị 0 ms, mục 22.5); còn độ trễ với quá trình buồn ngủ dần thì chưa |
 | Lọc báo giả khi cười | Dữ liệu có nhiều ca cười | Thêm chỉ số độ rộng miệng hoặc blendshape `mouthSmile`, xem mục 22.2 |
 | Người thử thứ hai, camera hồng ngoại | Người và thiết bị | Lặp lại phiên trên với người khác |
 | Tay rời vô lăng | Dữ liệu nhãn + hiệu chuẩn vùng vô lăng | Xem `docs/EXPERIMENT_LOG.md` mục 18; chưa đưa vào pipeline |
 | Build image Docker | Máy có Docker daemon | `docker compose up --build`; compose đã hợp lệ nhưng chưa build thử |
-| FPS ≥ 20 (UR-15) | Camera thật | Pipeline face đã ~92 FPS trên CPU (thí nghiệm 15), nên đo riêng khâu đọc camera và YOLO điện thoại/pose để tìm nút thắt thật |
+| FPS ≥ 20 (UR-15) | Camera thật | Chạy `python scripts/diag_fps.py --camera 0 --seconds 15`: nó tách bốn mức (đọc khung / +khuôn mặt / +lớp phủ+JPEG / +YOLO). Đã biết: MediaPipe 11 ms, lớp phủ+JPEG chỉ 1,15 ms. Nếu mức A đã ~15 FPS thì nút thắt là camera (thường do tự động phơi sáng), nếu A cao mà D tụt thì là hai luồng YOLO |
 
 Vì các mục trên chưa được kiểm chứng, **dự án đạt mức MVP chạy được và có số liệu trên dữ liệu công khai, chưa phải sản phẩm đã kiểm chứng ngoài đời thật.**

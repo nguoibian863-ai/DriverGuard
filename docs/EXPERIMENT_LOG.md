@@ -620,6 +620,30 @@ MediaPipe face + toàn bộ pipeline chạy **10,9 ms/khung trên CPU container*
 Vậy **nút thắt khiến FPS camera trung vị chỉ 15 không nằm ở MediaPipe**. Nghi can còn lại: khâu đọc camera (`cv2.VideoCapture`),
 YOLO điện thoại (thí nghiệm 1 đo yolo26x 55,6 ms/khung) và YOLO pose chạy chung GPU. Cần đo lại trên máy có camera để chốt.
 
+### 22.5 Độ trễ phát hiện (bổ sung 2026-10-13)
+Nhãn "nhắm hẳn" của eyeblink8 có theo từng khung, nên đo được **độ trễ của khâu cảm nhận**:
+từ khung đầu tiên có nhãn nhắm hẳn đến khung EAR tụt dưới ngưỡng (tìm trong cửa sổ [-0,5 s, +1,0 s]).
+
+| Chỉ số | Giá trị (376 lần nhắm mắt, 8 video) |
+|---|---|
+| Trung vị | **0,000 s** (cùng khung với nhãn) |
+| p90 | **0,017 s** (dưới một khung ở 30 FPS) |
+| p90 xấu nhất theo video | 0,033 s (đúng 1 khung) |
+
+Ngân sách độ trễ từ lúc mắt nhắm đến lúc cảnh báo hiện ra:
+
+| Thành phần | Thời gian | Nguồn |
+|---|---|---|
+| Cảm nhận (EAR tụt) | ~0 s (p90 0,017 s) | đo được ở đây |
+| Giữ trạng thái `eyes_closed_s` | **1,8 s** | tham số thiết kế trong `thresholds.yaml` |
+| Đẩy telemetry | ≤ 0,067 s | `MAX_TELEMETRY_HZ = 15` ở `worker.py:17` (sự kiện được đẩy ngay, không chờ) |
+| **Tổng** | **≈ 1,8 s** | |
+
+**Kết luận: độ trễ gần như hoàn toàn do tham số `eyes_closed_s` 1,8 s quyết định, không phải do xử lý chậm.**
+Muốn cảnh báo sớm hơn thì hạ tham số đó, đổi lại sẽ tăng báo giả — cần dữ liệu để cân nhắc, chưa đổi.
+Lưu ý: đây là độ trễ với **mắt nhắm**; độ trễ với *buồn ngủ thật* (người gà gật dần) thì hai tập này
+không đo được vì không có nhãn theo mốc thời gian của trạng thái buồn ngủ.
+
 ### 22.4 Hạn chế
 Người thử ngồi trước webcam trong nhà, không phải trong xe; đây là video người **tỉnh táo** nên chỉ đo được báo giả,
 không đo được khả năng bắt buồn ngủ thật (phần đó xem thí nghiệm 16). Nhãn là *nháy mắt*, nên mọi đoạn mắt híp kéo dài

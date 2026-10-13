@@ -52,3 +52,5 @@
   - Nút thắt FPS 15 KHÔNG phải MediaPipe (pipeline ~92 FPS trên CPU). Nghi can: đọc camera, YOLO điện thoại (55,6 ms), YOLO pose.
   - Chưa đo được ĐỘ TRỄ phát hiện: cả hai tập đều không có nhãn theo mốc thời gian.
   - Dữ liệu ở `data/raw/eyeblink8/` và `data/raw/df_video/` (ngoài git, 1,3 GB). NTHU-DDD/YawDD vẫn phải đăng ký.
+- 2026-10-13 (bổ sung EXP-015): ĐÃ ĐO ĐƯỢC ĐỘ TRỄ, trái với nhận định trước đó là không đo được. Nhãn "nhắm hẳn" của eyeblink8 có theo từng khung nên đo được độ trễ cảm nhận: 376 lần nhắm mắt, trung vị 0,000 s, p90 0,017 s (dưới 1 khung ở 30 FPS). Ngân sách tổng: cảm nhận ~0 + `eyes_closed_s` 1,8 s + đẩy telemetry ≤0,067 s (MAX_TELEMETRY_HZ=15) ≈ 1,8 s => độ trễ gần như hoàn toàn do tham số thiết kế, không phải do xử lý chậm. Còn thiếu: độ trễ với buồn ngủ THẬT (gà gật dần), cần nhãn theo mốc thời gian.
+- Thêm `scripts/diag_fps.py` (4 mức A/B/C/D, chạy được với --camera hoặc --video). Đo trên video: đọc khung 1,0 ms, MediaPipe 11,1 ms, lớp phủ+JPEG 1,15 ms => khâu dựng ảnh KHÔNG phải nút thắt. Sếp chạy `python scripts/diag_fps.py --camera 0 --seconds 15` để chốt nút thắt FPS.
