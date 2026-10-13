@@ -1,0 +1,53 @@
+{
+ "dataset": "c3rl/yawning-people (ảnh sinh bởi AI)",
+ "yawning": {
+  "n": 300,
+  "detect_rate": 0.89,
+  "mar_percentiles": {
+   "5": 0.366,
+   "25": 0.593,
+   "50": 0.684,
+   "75": 0.758,
+   "95": 0.885
+  }
+ },
+ "notyawning": {
+  "n": 300,
+  "detect_rate": 0.993,
+  "mar_percentiles": {
+   "5": 0.003,
+   "25": 0.005,
+   "50": 0.009,
+   "75": 0.023,
+   "95": 0.295
+  }
+ },
+ "auc_mar": 0.9877,
+ "sweep": [
+  {
+   "mar_t": 0.2,
+   "recall": 0.97,
+   "fpr": 0.081
+  },
+  {
+   "mar_t": 0.3,
+   "recall": 0.959,
+   "fpr": 0.047
+  },
+  {
+   "mar_t": 0.4,
+   "recall": 0.933,
+   "fpr": 0.023
+  },
+  {
+   "mar_t": 0.5,
+   "recall": 0.88,
+   "fpr": 0.007
+  },
+  {
+   "mar_t": 0.6,
+   "recall": 0.742,
+   "fpr": 0.007
+  }
+ ]
+}

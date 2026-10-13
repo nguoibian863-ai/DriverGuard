@@ -41,12 +41,37 @@ def insert_event(event, session_id=None):
     return event
 
 
-def list_events(limit=50):
+def list_events(limit=50, session_id=None):
+    query = "SELECT id, session_id, event_type, started_at, duration_ms, risk_score, risk_level, confidence, reason FROM events"
+    params = []
+    if session_id:
+        query += " WHERE session_id = ?"
+        params.append(session_id)
     with _connect() as db:
-        rows = db.execute("SELECT id, session_id, event_type, started_at, duration_ms, risk_score, risk_level, confidence, reason FROM events ORDER BY started_at DESC, rowid DESC LIMIT ?", (limit,)).fetchall()
+        rows = db.execute(query + " ORDER BY started_at DESC, rowid DESC LIMIT ?", (*params, limit)).fetchall()
     return [dict(row) for row in rows]
 
 
-def end_session(session_id):
+def list_sessions(limit=50):
     with _connect() as db:
-        db.execute("UPDATE sessions SET ended_at = ?, status = 'COMPLETED' WHERE id = ?", (datetime.now(UTC).isoformat(), session_id))
+        rows = db.execute("SELECT * FROM sessions ORDER BY started_at DESC, rowid DESC LIMIT ?", (limit,)).fetchall()
+    return [dict(row) for row in rows]
+
+
+def get_session(session_id):
+    with _connect() as db:
+        row = db.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def end_session(session_id):
+    """Đóng phiên và tổng hợp số sự kiện, rủi ro trung bình/lớn nhất từ bảng events."""
+    with _connect() as db:
+        stats = db.execute(
+            "SELECT COUNT(*) AS n, AVG(risk_score) AS avg_risk, MAX(risk_score) AS max_risk FROM events WHERE session_id = ?",
+            (session_id,),
+        ).fetchone()
+        db.execute(
+            "UPDATE sessions SET ended_at = ?, status = 'COMPLETED', event_count = ?, average_risk = ?, max_risk = ? WHERE id = ?",
+            (datetime.now(UTC).isoformat(), stats["n"], stats["avg_risk"], stats["max_risk"], session_id),
+        )

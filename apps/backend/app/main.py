@@ -6,12 +6,12 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.db.database import create_session, end_session, list_events
+from app.db.database import create_session, end_session, get_session, list_events, list_sessions
 from app.services.telemetry_bridge import TelemetryBridge
 from app.services.websocket_service import ConnectionManager
 
@@ -109,8 +109,36 @@ def mute(body: MuteRequest):
 
 
 @app.get("/api/v1/events")
-def events(limit: int = 50):
-    return {"events": list_events(max(0, min(limit, 1000)))}
+def events(limit: int = 50, session_id: str | None = None):
+    return {"events": list_events(max(0, min(limit, 1000)), session_id)}
+
+
+@app.get("/api/v1/sessions")
+def sessions(limit: int = 50):
+    return {"sessions": list_sessions(max(0, min(limit, 1000)))}
+
+
+@app.get("/api/v1/sessions/current")
+def current_session():
+    return get_session(app.state.session["id"])
+
+
+@app.get("/api/v1/sessions/{session_id}")
+def session_detail(session_id: str):
+    session = get_session(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session_not_found")
+    return session
+
+
+@app.post("/api/v1/sessions/stop")
+def stop_session():
+    """Đóng phiên hiện tại (có thống kê) và mở phiên mới cho các sự kiện sau đó."""
+    old_id = app.state.session["id"]
+    app.state.session = create_session()
+    app.state.bridge.session_id = app.state.session["id"]
+    end_session(old_id)
+    return {"stopped": get_session(old_id), "current": app.state.session}
 
 
 @app.get("/api/v1/config")

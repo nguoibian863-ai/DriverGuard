@@ -1,0 +1,75 @@
+{
+ "dataset": "FORM (Zenodo 6695771)",
+ "baseline_forward_median": {
+  "yaw": -0.5,
+  "pitch": 0.7
+ },
+ "forward": {
+  "n": 390,
+  "face_rate": 0.997,
+  "yaw_dev_percentiles": {
+   "10": 0.3,
+   "50": 1.7,
+   "90": 5.1
+  },
+  "pitch_dev_percentiles": {
+   "10": -8.4,
+   "50": 0.0,
+   "90": 6.9
+  },
+  "frac_yaw_dev_gt_30": 0.0,
+  "frac_pitch_dev_abs_gt_20": 0.0,
+  "ear_median": 0.261
+ },
+ "rotated": {
+  "n": 390,
+  "face_rate": 0.703,
+  "yaw_dev_percentiles": {
+   "10": 21.9,
+   "50": 34.7,
+   "90": 50.3
+  },
+  "pitch_dev_percentiles": {
+   "10": -12.3,
+   "50": -2.1,
+   "90": 7.5
+  },
+  "frac_yaw_dev_gt_30": 0.646,
+  "frac_pitch_dev_abs_gt_20": 0.007,
+  "ear_median": 0.367
+ },
+ "on_phonecall": {
+  "n": 400,
+  "face_rate": 0.988,
+  "yaw_dev_percentiles": {
+   "10": 0.5,
+   "50": 2.2,
+   "90": 6.1
+  },
+  "pitch_dev_percentiles": {
+   "10": -6.2,
+   "50": 3.9,
+   "90": 9.1
+  },
+  "frac_yaw_dev_gt_30": 0.0,
+  "frac_pitch_dev_abs_gt_20": 0.0,
+  "ear_median": 0.297
+ },
+ "mobile_usage": {
+  "n": 380,
+  "face_rate": 0.803,
+  "yaw_dev_percentiles": {
+   "10": 1.2,
+   "50": 19.3,
+   "90": 35.5
+  },
+  "pitch_dev_percentiles": {
+   "10": 16.9,
+   "50": 24.8,
+   "90": 33.2
+  },
+  "frac_yaw_dev_gt_30": 0.213,
+  "frac_pitch_dev_abs_gt_20": 0.793,
+  "ear_median": 0.156
+ }
+}

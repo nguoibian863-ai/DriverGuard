@@ -537,3 +537,49 @@ Nhận xét:
 1. Ngưỡng EAR 0,15 chỉ bắt các ca nhắm hẳn; ảnh "Drowsy" gồm nhiều ca mắt lim dim (EAR ~0,2) nên recall tĩnh thấp (17,5%). Điều này phù hợp thiết kế: `DROWSINESS_ACUTE` dựa vào nhắm mắt kéo dài/PERCLOS theo thời gian, không phải một khung.
 2. FPR thấp (2,3%) ở ngưỡng hiện tại: ít báo giả trên người lạ. Tăng ngưỡng lên 0,20 gần gấp đôi recall với FPR 4,9%, nhưng chưa đủ bằng chứng để đổi, vì nhãn không phân biệt nhắm hẳn và lim dim và không có chiều thời gian.
 3. Kết luận có hạn chế: ảnh cắt mặt, nhãn nhiễu, chưa kiểm khả năng ngáp/quay đầu. Đây chưa thay thế NTHU-DDD/YawDD dạng video. Không thay đổi tham số nào.
+
+## 20. Thí nghiệm 13 (EXP-013): MAR (ngáp) trên tập công khai c3rl/yawning-people
+
+Ghi ngày 2026-10-12 (Claude, container, CPU). Mã: `scripts/eval_yawn_hf.py`; số liệu: `docs/experiments/yawn_hf.json`.
+Dữ liệu: HF `c3rl/yawning-people`, lấy ngẫu nhiên 300 ảnh `yawning` + 300 `notyawning` (seed 0). **Ảnh do AI sinh** (prompt đa dạng tuổi, trang phục, bối cảnh), không phải người thật trong xe; ngoài ra là ảnh tĩnh.
+
+| Chỉ số | Giá trị |
+|---|---|
+| MediaPipe thấy mặt | yawning 89,0% · notyawning 99,3% |
+| MAR trung vị | yawning 0,684 · notyawning 0,009 |
+| AUC của MAR | 0,988 |
+| Ngưỡng cấu hình 0,40 | recall 0,933 (trên ảnh thấy mặt, ~0,83 tính cả ảnh mất mặt) · FPR 0,023 |
+| Ngưỡng 0,30 · 0,50 · 0,60 | recall 0,959 · 0,880 · 0,742; FPR 0,047 · 0,007 · 0,007 |
+
+Nhận xét: MAR phân biệt ngáp rất tốt trên ảnh sinh (AUC 0,988) và ngưỡng 0,40 là điểm cân bằng hợp lý; 0,50 gần như không báo giả nhưng mất thêm ~5% recall. Khớp thí nghiệm 4 (ảnh thật 800 ảnh). 11% ảnh ngáp mất mặt (miệng mở rộng + tay che) là hạn chế của MediaPipe, không phải của MAR. Hạn chế: ảnh AI sinh, miệng mở rộng nhiều hơn ngáp thật, nên số liệu có thể lạc quan. Không đổi tham số.
+
+## 21. Thí nghiệm 14 (EXP-014): tập FORM, ảnh cabin thật ban đêm (Zenodo 6695771, CC-BY 4.0)
+
+Ghi ngày 2026-10-12 (Claude, container, CPU). Mã: `scripts/eval_form.py`, `scripts/eval_form_phone.py`; số liệu: `docs/experiments/form_mediapipe.json`, `docs/experiments/form_phone.json`.
+Dữ liệu: 1.560 ảnh tĩnh người thật trong xe, ban đêm, camera nhìn từ phía trước. Bốn lớp: `forward` (390), `rotated` (390), `on_phonecall` (400, áp điện thoại vào tai), `mobile_usage` (380, nhìn xuống màn hình điện thoại). Ảnh tĩnh, không có chiều thời gian; "tư thế chuẩn" lấy là trung vị yaw/pitch của lớp `forward`, nên lạc quan hơn hiệu chuẩn thật.
+
+### 21.1 MediaPipe: thấy mặt, yaw, pitch
+| Lớp | Thấy mặt | Lệch yaw trung vị | Lệch pitch trung vị | Yaw >30° | \|Pitch\| >20° |
+|---|---|---|---|---|---|
+| forward | 99,7% | 1,7° | 0,0° | 0% | 0% |
+| rotated | **70,3%** | 34,7° | −2,1° | 64,6% | 0,7% |
+| on_phonecall | 98,8% | 2,2° | +3,9° | 0% | 0% |
+| mobile_usage | 80,3% | 19,3° | **+24,8°** | 21,3% | 79,3% |
+
+### 21.2 Phát hiện điện thoại (yolo26x, 100 ảnh mỗi lớp, ROI `is_usage_region` với hộp mặt MediaPipe)
+| Lớp | Có hộp điện thoại (conf 0,25) | Vào ROI sử dụng |
+|---|---|---|
+| forward / rotated (không điện thoại) | 0% / 0% | 0% / 0% |
+| on_phonecall | 69% | 68% |
+| mobile_usage | **0%** | 0% |
+
+Quét độ tin cậy (60 ảnh mỗi lớp, chỉ xét có hộp): conf 0,10 cho on_phonecall 83%, báo giả 0%; conf 0,05 cho 95% nhưng forward có 1,7% báo giả.
+
+### 21.3 Kết luận
+1. **Dấu pitch được xác nhận trên dữ liệu thật**: cúi nhìn xuống cho pitch dương (+24,8°) với `pitch_sign: 1.0` như đang đặt, ngưỡng 20° bắt 79% khung `mobile_usage`. Giải quyết giới hạn "dấu pitch chưa kiểm chứng" ở `docs/MVP_REPORT.md`.
+2. **ROI không phải nút thắt khi đã có hộp**: 68/69 ca có hộp đều rơi vào ROI. Nút thắt là bộ phát hiện: 69% ở conf 0,25 khi áp điện thoại vào tai.
+3. **Nhắn tin nhìn xuống (mobile_usage) YOLO không thấy điện thoại (0%)**, ban đêm, điện thoại thấp và nhỏ. Ca này chỉ phát hiện qua `LOOKING_DOWN` (pitch), không phải `PHONE_USAGE`.
+4. **Quay đầu mạnh làm mất mặt 30%** (rotated) và 20% khi cúi: đây là chỗ pose fallback cần phát huy; chưa đo trên FORM vì chỉ MediaPipe được chạy.
+5. **EAR khi cúi đã được xử lý trong pipeline**: EAR trung vị của `mobile_usage` chỉ 0,156 (forward 0,261) vì mí mắt khép khi cúi, nhưng `pipeline.py` đã bỏ qua EAR khi đã hiệu chuẩn và pitch tương đối > ngưỡng (`suppress_eyes`), nên không báo buồn ngủ nhầm ở chế độ chạy bình thường. Chưa kiểm trước khi hiệu chuẩn xong (4 s đầu).
+6. Đã làm cho `conf` YOLO đổi được bằng biến môi trường `DRIVERGUARD_YOLO_CONF` (mặc định vẫn 0,25). Gợi ý thử 0,10 (recall 69% → 83%, báo giả 0% trên 120 ảnh âm). Phải kiểm trên video, vì luật `phone_s` 1,5 s đã lọc báo giả theo thời gian.
+Hạn chế: ảnh tĩnh, ban đêm, một camera, nhãn theo lớp; 100 ảnh mỗi lớp cho phần điện thoại; ngưỡng yaw/pitch dùng trung vị `forward` làm chuẩn.

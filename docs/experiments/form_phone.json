@@ -1,0 +1,30 @@
+{
+ "dataset": "FORM (Zenodo 6695771)",
+ "n_per_class": 100,
+ "weights": "/home/user/DriverGuard/models/yolo26x.pt",
+ "conf": 0.25,
+ "forward": {
+  "n": 100,
+  "phone_box": 0.0,
+  "face_found": 0.99,
+  "phone_usage_roi": 0.0
+ },
+ "rotated": {
+  "n": 100,
+  "phone_box": 0.0,
+  "face_found": 0.72,
+  "phone_usage_roi": 0.0
+ },
+ "on_phonecall": {
+  "n": 100,
+  "phone_box": 0.69,
+  "face_found": 0.99,
+  "phone_usage_roi": 0.68
+ },
+ "mobile_usage": {
+  "n": 100,
+  "phone_box": 0.0,
+  "face_found": 0.8,
+  "phone_usage_roi": 0.0
+ }
+}
