@@ -1,0 +1,172 @@
+{
+ "dataset": "DF-vediodataset (figshare, CC BY 4.0)",
+ "stride": 2,
+ "thresholds": {
+  "ear": 0.15,
+  "eyes_closed_s": 1.8
+ },
+ "alert": {
+  "videos": 4,
+  "minutes": 10.2,
+  "perclos": 0.0,
+  "ear_median": 0.264,
+  "DROWSINESS_ACUTE": 0,
+  "DROWSINESS_ACUTE_per_min": 0.0,
+  "YAWNING": 0,
+  "CHRONIC_FATIGUE": 0
+ },
+ "fatigue": {
+  "videos": 4,
+  "minutes": 21.9,
+  "perclos": 0.2033,
+  "ear_median": 0.123,
+  "DROWSINESS_ACUTE": 76,
+  "DROWSINESS_ACUTE_per_min": 3.475,
+  "YAWNING": 0,
+  "CHRONIC_FATIGUE": 22
+ },
+ "per_video": [
+  {
+   "video": "子龙清醒1.mp4",
+   "label": "alert",
+   "minutes": 0.16,
+   "frames_processed": 141,
+   "face_rate": 1.0,
+   "ear_median": 0.258,
+   "ear_p10": 0.142,
+   "mar_p95": 0.019,
+   "perclos": 0.0,
+   "events": {},
+   "events_per_min": {},
+   "ms_per_frame": 12.2
+  },
+  {
+   "video": "子龙清醒2.mp4",
+   "label": "alert",
+   "minutes": 0.17,
+   "frames_processed": 156,
+   "face_rate": 1.0,
+   "ear_median": 0.269,
+   "ear_p10": 0.172,
+   "mar_p95": 0.014,
+   "perclos": 0.0,
+   "events": {},
+   "events_per_min": {},
+   "ms_per_frame": 12.7
+  },
+  {
+   "video": "子龙疲劳1.mp4",
+   "label": "fatigue",
+   "minutes": 5.53,
+   "frames_processed": 4977,
+   "face_rate": 1.0,
+   "ear_median": 0.133,
+   "ear_p10": 0.022,
+   "mar_p95": 0.021,
+   "perclos": 0.0784,
+   "events": {
+    "DROWSINESS_ACUTE": 29,
+    "CHRONIC_FATIGUE": 6,
+    "LOOKING_AWAY": 1
+   },
+   "events_per_min": {
+    "DROWSINESS_ACUTE": 5.244,
+    "CHRONIC_FATIGUE": 1.085,
+    "LOOKING_AWAY": 0.181
+   },
+   "ms_per_frame": 11.8
+  },
+  {
+   "video": "子龙疲劳2.mp4",
+   "label": "fatigue",
+   "minutes": 3.68,
+   "frames_processed": 3316,
+   "face_rate": 1.0,
+   "ear_median": 0.016,
+   "ear_p10": 0.013,
+   "mar_p95": 0.079,
+   "perclos": 0.832,
+   "events": {
+    "DROWSINESS_ACUTE": 7,
+    "CHRONIC_FATIGUE": 4
+   },
+   "events_per_min": {
+    "DROWSINESS_ACUTE": 1.9,
+    "CHRONIC_FATIGUE": 1.086
+   },
+   "ms_per_frame": 11.9
+  },
+  {
+   "video": "胡琴林_清醒.mp4",
+   "label": "alert",
+   "minutes": 5.47,
+   "frames_processed": 4922,
+   "face_rate": 1.0,
+   "ear_median": 0.301,
+   "ear_p10": 0.219,
+   "mar_p95": 0.106,
+   "perclos": 0.0,
+   "events": {},
+   "events_per_min": {},
+   "ms_per_frame": 11.7
+  },
+  {
+   "video": "胡琴林_疲劳.mp4",
+   "label": "fatigue",
+   "minutes": 3.48,
+   "frames_processed": 3136,
+   "face_rate": 0.981,
+   "ear_median": 0.219,
+   "ear_p10": 0.077,
+   "mar_p95": 0.494,
+   "perclos": 0.0277,
+   "events": {
+    "DROWSINESS_ACUTE": 6,
+    "CHRONIC_FATIGUE": 3,
+    "LOOKING_DOWN": 2
+   },
+   "events_per_min": {
+    "DROWSINESS_ACUTE": 1.722,
+    "CHRONIC_FATIGUE": 0.861,
+    "LOOKING_DOWN": 0.574
+   },
+   "ms_per_frame": 11.7
+  },
+  {
+   "video": "鹏飞_疲劳.mp4",
+   "label": "fatigue",
+   "minutes": 9.18,
+   "frames_processed": 8265,
+   "face_rate": 0.996,
+   "ear_median": 0.114,
+   "ear_p10": 0.014,
+   "mar_p95": 0.158,
+   "perclos": 0.0928,
+   "events": {
+    "DROWSINESS_ACUTE": 34,
+    "CHRONIC_FATIGUE": 9,
+    "LOOKING_AWAY": 2
+   },
+   "events_per_min": {
+    "DROWSINESS_ACUTE": 3.702,
+    "CHRONIC_FATIGUE": 0.98,
+    "LOOKING_AWAY": 0.218
+   },
+   "ms_per_frame": 11.8
+  },
+  {
+   "video": "鹏飞哥清醒视频.mp4",
+   "label": "alert",
+   "minutes": 4.43,
+   "frames_processed": 3987,
+   "face_rate": 1.0,
+   "ear_median": 0.251,
+   "ear_p10": 0.13,
+   "mar_p95": 0.086,
+   "perclos": 0.0,
+   "events": {},
+   "events_per_min": {},
+   "ms_per_frame": 11.4
+  }
+ ]
+}
